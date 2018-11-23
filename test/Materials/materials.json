@@ -1,0 +1,46 @@
+{
+  "materials": [
+    {
+      "name": "mat1",
+      "vertex": "simple.vert",
+      "fragment": "simple.frag",
+      "diffuse": [
+        0.7,
+        0.7,
+        0.7
+      ],
+      "ambient": [
+        0.1,
+        0.1,
+        0.1
+      ],
+      "specular": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "phong": 100.0
+    },
+    {
+      "name": "plane",
+      "vertex": "simple.vert",
+      "fragment": "simple.frag",
+      "diffuse": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "ambient": [
+        0.05,
+        0.05,
+        0.05
+      ],
+      "specular": [
+        0.1,
+        0.1,
+        0.1
+      ],
+      "phong": 10.0
+    }
+  ]
+}
