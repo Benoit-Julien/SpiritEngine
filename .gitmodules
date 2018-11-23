@@ -1,0 +1,9 @@
+[submodule "imgui"]
+	path = imgui
+	url = https://github.com/Benoit-Julien/imgui
+[submodule "soil"]
+	path = soil
+	url = https://Benoit-Julien@github.com/Benoit-Julien/soil.git
+[submodule "rapidjson"]
+	path = rapidjson
+	url = https://github.com/Tencent/rapidjson/
