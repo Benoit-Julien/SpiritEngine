@@ -1,0 +1,20 @@
+language: cpp
+sudo: required
+dist: trusty
+compiler:
+  - g++
+os:
+  - linux
+  - osx
+
+before_install:
+- if [ $TRAVIS_OS_NAME = linux ]; then
+    sudo add-apt-repository --yes ppa:ubuntu-sdk-team/ppa &&
+    sudo apt-get update -qq
+  ; fi
+- if [ $TRAVIS_OS_NAME = osx ]; then
+    brew update
+  ; fi
+
+script:
+  - ./configure.sh
