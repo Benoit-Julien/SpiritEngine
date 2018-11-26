@@ -4,22 +4,21 @@ dist: trusty
 compiler:
   - g++
 os:
-  #- linux
+  - linux
   - osx
 
 before_install:
 - if [ $TRAVIS_OS_NAME = linux ]; then
     sudo apt-get update -qq;
-    sudo apt-get install -y --no-install-recommends libxrandr-dev libxi-dev libxxf86vm-dev libsdl2-dev;
-    wget https://github.com/glfw/glfw/releases/download/3.2.1/glfw-3.2.1.zip;
-    unzip glfw-3.2.1.zip && cd glfw-3.2.1;
-    cmake -DBUILD_SHARED_LIBS=true -DGLFW_BUILD_EXAMPLES=false -DGLFW_BUILD_TESTS=false -DGLFW_BUILD_DOCS=false .;
-    sudo make -j $CPU_NUM install && cd ..;
-  fi
+    sudo apt-get install -y libglew-dev libglfw3-dev libglfw3 libglm-dev;
+  fis
 - if [ $TRAVIS_OS_NAME = osx ]; then
     brew update;
     brew install glew glfw glm;
   fi
 
 script:
-  - ./configure.sh
+  - mkdir -p build
+  - cd build
+  - cmake -DCMAKE_BUILD_TYPE=Debug ..
+  - make -j4
