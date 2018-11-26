@@ -4,7 +4,7 @@ dist: trusty
 compiler:
   - g++
 os:
-  - linux
+  #- linux
   - osx
 
 before_install:
@@ -18,7 +18,7 @@ before_install:
   fi
 - if [ $TRAVIS_OS_NAME = osx ]; then
     brew update;
-    brew install glew glfw;
+    brew install glew glfw glm;
   fi
 
 script:
