@@ -11,7 +11,7 @@ before_install:
 - if [ $TRAVIS_OS_NAME = linux ]; then
     sudo apt-get update -qq;
     sudo apt-get install -y libglew-dev libglfw3-dev libglfw3 libglm-dev;
-  fis
+  fi
 - if [ $TRAVIS_OS_NAME = osx ]; then
     brew update;
     brew install glew glfw glm;
