@@ -1,13 +1,12 @@
 language: cpp
 sudo: required
-dist: trusty
+dist: xenial
 compiler: gcc
 os:
   - linux
   - osx
 addons:
   apt:
-    dist: xenial
     packages:
       - libglew-dev
       - libglfw3
