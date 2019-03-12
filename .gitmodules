@@ -8,5 +8,5 @@
 	path = assimp
 	url = https://github.com/assimp/assimp
 [submodule "imgui"]
-	path = imgui/imgui
+	path = imgui
 	url = https://github.com/Benoit-Julien/imgui
