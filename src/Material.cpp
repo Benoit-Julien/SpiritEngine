@@ -22,7 +22,7 @@ void Material::use() {
 	this->shader->setUniform("material.ambient", this->Ambient);
 	this->shader->setUniform("material.diffuse", this->Diffuse);
 	this->shader->setUniform("material.specular", this->Specular);
-	this->shader->setUniform("material.phong", this->phong);
+	this->shader->setUniform("material.shiness", this->shiness);
 }
 
 void Material::disable() {
@@ -33,5 +33,5 @@ void Material::initialize() {
 	this->Diffuse = glm::vec3(1, 1, 1);
 	this->Ambient = glm::vec3(0.2f, 0.2f, 0.2f);
 	this->Specular = glm::vec3(1, 1, 1);
-	this->phong = 35.0f;
+	this->shiness = 35.0f;
 }

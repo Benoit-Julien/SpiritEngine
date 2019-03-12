@@ -33,3 +33,4 @@
 
 .idea
 cmake-build-debug
+/test/Models/teapot.3ds

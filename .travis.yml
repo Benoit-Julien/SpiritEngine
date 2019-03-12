@@ -1,0 +1,38 @@
+language: cpp
+sudo: required
+dist: xenial
+compiler: gcc
+os:
+  - linux
+  - osx
+addons:
+  apt:
+    sources: bionic
+    packages:
+      - libglew-dev
+      - libglfw3
+      - libglfw3-dev
+      - libglm-dev
+    update: true
+  homebrew:
+    packages:
+      - glew
+      - glfw
+      - glm
+    update: true
+
+#before_install:
+#- if [ $TRAVIS_OS_NAME = linux ]; then
+#    sudo apt-get update;
+#    sudo apt-get install -y libglew-dev libglfw3 libglfw3-dev libglm-dev;
+#  fi
+#- if [ $TRAVIS_OS_NAME = osx ]; then
+#    brew update;
+#    brew install glew glfw glm;
+#  fi
+
+script:
+  - mkdir -p build
+  - cd build
+  - cmake -DCMAKE_BUILD_TYPE=Debug ..
+  - make -j4

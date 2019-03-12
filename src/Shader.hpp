@@ -2,6 +2,8 @@
 #define COMPUTERGRAPHICS1_SHADER_HPP
 
 #include <unordered_map>
+#include <iostream>
+#include <variant>
 #include <string>
 #include <GL/glew.h>
 
@@ -24,6 +26,27 @@ class Shader {
 	bool initialised;
 
 	std::unordered_map<std::string, GLint> uniforms;
+
+	template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+	template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
+ public:
+	typedef std::variant<
+	        int,
+	        unsigned int,
+	        float,
+	        glm::vec2,
+					glm::ivec2,
+					glm::uvec2,
+					glm::vec3,
+					glm::ivec3,
+					glm::uvec3,
+					glm::vec4,
+					glm::ivec4,
+					glm::uvec4,
+					glm::mat2,
+					glm::mat3,
+					glm::mat4> var_t;
 
  public:
 	Shader();
@@ -58,7 +81,7 @@ class Shader {
 	}
 
 	template<typename T>
-	void setUniform(const std::string &uniformName, const T &value) {}
+	void setUniform(const std::string &uniformName, const T &value);
 
  private:
 	// Private method to compile a shader of a given type

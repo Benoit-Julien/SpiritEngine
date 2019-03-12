@@ -16,15 +16,15 @@ Cube &Cube::operator=(const Cube &cube) {
 void Cube::setupVertices() {
 
 	/************ Vertices ************/
-	glm::vec3 p0(-0.5f, -0.5f, 0.5f);
-	glm::vec3 p1(0.5f, -0.5f, 0.5f);
-	glm::vec3 p2(0.5f, -0.5f, -0.5f);
-	glm::vec3 p3(-0.5f, -0.5f, -0.5f);
+	glm::vec3 p0(-1, -1, 1);
+	glm::vec3 p1(1, -1, 1);
+	glm::vec3 p2(1, -1, -1);
+	glm::vec3 p3(-1, -1, -1);
 
-	glm::vec3 p4(-0.5f, 0.5f, 0.5f);
-	glm::vec3 p5(0.5f, 0.5f, 0.5f);
-	glm::vec3 p6(0.5f, 0.5f, -0.5f);
-	glm::vec3 p7(-0.5f, 0.5f, -0.5f);
+	glm::vec3 p4(-1, 1, 1);
+	glm::vec3 p5(1, 1, 1);
+	glm::vec3 p6(1, 1, -1);
+	glm::vec3 p7(-1, 1, -1);
 
 	this->vertices = std::vector<glm::vec3>{
 					// Bottom

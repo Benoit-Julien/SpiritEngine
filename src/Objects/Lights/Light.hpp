@@ -1,7 +1,7 @@
 #ifndef COMPUTERGRAPHICS1_LIGHT_HPP
 #define COMPUTERGRAPHICS1_LIGHT_HPP
 
-#include "Movable.hpp"
+#include "Objects/Movable.hpp"
 
 class Light : public Movable {
  private:

@@ -61,10 +61,15 @@ void MyGlWindow::UnRegisterFrameFunction(const unsigned int &ID) {
 
 void MyGlWindow::Run() {
 	while (!glfwWindowShouldClose(this->_window)) {
+		Scene::Update();
+
 		glClearColor(0.2f, 0.2f, 0.2f, 1.0); /// background color
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glEnable(GL_DEPTH_TEST);
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		int display_w, display_h;
 		glfwGetFramebufferSize(this->_window, &display_w, &display_h);
@@ -102,7 +107,7 @@ void MyGlWindow::draw() {
 																					this->_viewer->getAspectRatio(),
 																					0.1f,
 																					500.0f);
-	DrawInformation info = { view, projection };
+	DrawInformation info = {view, projection};
 	for (auto &func : this->_frameFunction)
 		func.second(info);
 
@@ -137,9 +142,10 @@ void MyGlWindow::initialize() {
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	ImGuiIO &io = ImGui::GetIO();
+	(void) io;
 
-	const char* glsl_version = "#version 410";
+	const char *glsl_version = "#version 410";
 
 	ImGui_ImplGlfw_InitForOpenGL(this->_window, true);
 	ImGui_ImplOpenGL3_Init(glsl_version);

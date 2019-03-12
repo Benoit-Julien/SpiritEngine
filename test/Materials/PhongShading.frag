@@ -14,7 +14,7 @@ struct Material {
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular;
-	float phong;
+	float shiness;
 };
 
 in vec3 fNormal;
@@ -39,7 +39,7 @@ vec3 CalcColor(Light light) {
 
   vec3 ambient = material.ambient * light.ambient;
   vec3 diffuse = material.diffuse * light.diffuse * max(dot(N, L), 0.0) * light.intensity / distance;
-  vec3 specular = material.specular * light.specular * pow(max(dot(V, R), 0.0), material.phong) * light.intensity / distance;
+  vec3 specular = material.specular * light.specular * pow(max(dot(V, R), 0.0), material.shiness) * light.intensity / distance;
 
   return (ambient + diffuse + specular);
 }

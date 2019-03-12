@@ -52,9 +52,10 @@ set(SOURCES
         src/Objects/Object.cpp
         src/Objects/Movable.cpp
         src/Objects/Drawable.cpp
-        src/Objects/Light.cpp
+        src/Objects/Lights/Light.cpp
+        src/Objects/Lights/SpotLight.cpp
         src/Objects/TriangleObject.cpp
-        src/Objects/Model3D.cpp
+        src/Objects/Mesh.cpp
         src/Objects/Primitives/Cube.cpp
         src/Objects/Primitives/Plane.cpp
         src/Objects/Primitives/Sphere.cpp

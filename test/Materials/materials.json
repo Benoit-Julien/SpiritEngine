@@ -1,46 +1,39 @@
 {
   "materials": [
     {
-      "name": "mat1",
-      "vertex": "simple.vert",
-      "fragment": "simple.frag",
-      "diffuse": [
-        0.7,
-        0.7,
-        0.7
-      ],
-      "ambient": [
-        0.1,
-        0.1,
-        0.1
-      ],
-      "specular": [
-        1.0,
-        1.0,
-        1.0
-      ],
-      "phong": 100.0
-    },
-    {
       "name": "plane",
       "vertex": "simple.vert",
-      "fragment": "simple.frag",
-      "diffuse": [
-        0.5,
-        0.5,
-        0.5
-      ],
-      "ambient": [
-        0.05,
-        0.05,
-        0.05
-      ],
-      "specular": [
-        0.1,
-        0.1,
-        0.1
-      ],
-      "phong": 10.0
+      "fragment": "BlinnPhongShading.frag",
+      "diffuse": [0.5, 0.5, 0.5],
+      "ambient": [0.05, 0.05, 0.05],
+      "specular": [0.1, 0.1, 0.1],
+      "shiness": 10.0
+    },
+    {
+      "name": "dragon",
+      "vertex": "simple.vert",
+      "fragment": "BlinnPhongShading.frag",
+      "diffuse": [0.9, 0.9, 0.9],
+      "ambient": [0.1, 0.1, 0.1],
+      "specular": [0.4, 0.4, 0.4],
+      "shiness": 180
+    },
+    {
+      "name": "cartoon",
+      "vertex": "simple.vert",
+      "fragment": "CartoonShading.frag",
+      "ambiant": [0.24725, 0.1995, 0.0745],
+      "diffuse": [0.75164, 0.60648, 0.22648],
+      "specular": [0.628281, 0.555802, 0.366065],
+      "shiness": 51.2
+    },
+    {
+      "name": "silhouette",
+      "vertex": "silhouette.vert",
+      "fragment": "silhouette.frag",
+      "diffuse": [0, 0, 0],
+      "ambient": [0, 0, 0],
+      "specular": [0, 0, 0]
     }
   ]
 }
