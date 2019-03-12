@@ -4,9 +4,6 @@
 [submodule "rapidjson"]
 	path = rapidjson
 	url = https://github.com/Tencent/rapidjson/
-[submodule "imgui/imgui"]
-	path = imgui/imgui
-	url = https://Benoit-Julien@github.com/Benoit-Julien/imgui.git
 [submodule "assimp"]
 	path = assimp
 	url = https://github.com/assimp/assimp
