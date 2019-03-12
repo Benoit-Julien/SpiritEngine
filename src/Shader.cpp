@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <type_traits>
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
@@ -152,6 +153,29 @@ void Shader::setUniform<glm::mat4>(const std::string &uniformName, const glm::ma
 	GLint location = this->getUniformLocation(uniformName);
 	if (location == -1) return;
 	glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
+}
+
+/**************************** std::variant ****************************/
+
+template<>
+void Shader::setUniform<Shader::var_t>(const std::string &uniformName, const Shader::var_t &value) {
+	std::visit(overloaded{
+					[this, uniformName](int arg) { this->setUniform(uniformName, arg); },
+					[this, uniformName](unsigned int arg) { this->setUniform(uniformName, arg); },
+					[this, uniformName](float arg) { this->setUniform(uniformName, arg); },
+					[this, uniformName](glm::vec2 arg) { this->setUniform(uniformName, arg); },
+					[this, uniformName](glm::ivec2 arg) { this->setUniform(uniformName, arg); },
+					[this, uniformName](glm::uvec2 arg) { this->setUniform(uniformName, arg); },
+					[this, uniformName](glm::vec3 arg) { this->setUniform(uniformName, arg); },
+					[this, uniformName](glm::ivec3 arg) { this->setUniform(uniformName, arg); },
+					[this, uniformName](glm::uvec3 arg) { this->setUniform(uniformName, arg); },
+					[this, uniformName](glm::vec4 arg) { this->setUniform(uniformName, arg); },
+					[this, uniformName](glm::ivec4 arg) { this->setUniform(uniformName, arg); },
+					[this, uniformName](glm::uvec4 arg) { this->setUniform(uniformName, arg); },
+					[this, uniformName](glm::mat2 arg) { this->setUniform(uniformName, arg); },
+					[this, uniformName](glm::mat3 arg) { this->setUniform(uniformName, arg); },
+					[this, uniformName](glm::mat4 arg) { this->setUniform(uniformName, arg); },
+	}, value);
 }
 
 GLuint Shader::compileShader(const std::string &shaderSource, const GLenum &shaderType) {

@@ -6,27 +6,27 @@
 #include <memory>
 
 #include "Singleton.hpp"
-#include "Objects/Model3D.hpp"
+#include "Objects/Mesh.hpp"
 
 class ModelLoader : private Singleton<ModelLoader> {
 	friend Singleton<ModelLoader>;
 
-	std::unordered_map<std::string, std::shared_ptr<Model3D>> _modelList;
+	std::unordered_map<std::string, std::shared_ptr<Mesh>> _modelList;
 
 	ModelLoader() = default;
 	virtual ~ModelLoader() = default;
 
  public:
-	static std::shared_ptr<Model3D> LoadModel(const std::string &fileName) {
+	static std::shared_ptr<Mesh> LoadModel(const std::string &fileName) {
 		auto self = ModelLoader::getSingletonPtr();
 
 		auto elem = self->_modelList.find(fileName);
 		if (elem != self->_modelList.end())
-			return std::make_shared<Model3D>(*elem->second);
+			return std::make_shared<Mesh>(*elem->second);
 
-		auto model = std::make_shared<Model3D>(fileName);
+		auto model = std::make_shared<Mesh>(fileName);
 		self->_modelList[fileName] = model;
-		return std::make_shared<Model3D>(*model);
+		return std::make_shared<Mesh>(*model);
 	}
 };
 
