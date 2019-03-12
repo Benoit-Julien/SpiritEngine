@@ -19,7 +19,7 @@ if (GLM_FOUND)
     include_directories(${glm_DIR})
 endif ()
 
-add_subdirectory(imgui/imgui)
+add_subdirectory(imgui)
 add_subdirectory(soil)
 
 set(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
