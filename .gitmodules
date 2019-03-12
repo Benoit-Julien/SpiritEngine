@@ -1,9 +1,12 @@
 [submodule "soil"]
 	path = soil
-	url = https://Benoit-Julien@github.com/Benoit-Julien/soil.git
+	url = https://github.com/Benoit-Julien/soil
 [submodule "rapidjson"]
 	path = rapidjson
 	url = https://github.com/Tencent/rapidjson/
 [submodule "assimp"]
 	path = assimp
 	url = https://github.com/assimp/assimp
+[submodule "imgui"]
+	path = imgui/imgui
+	url = https://github.com/Benoit-Julien/imgui
