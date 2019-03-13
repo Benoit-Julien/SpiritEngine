@@ -11,7 +11,7 @@ class Drawable : public Movable {
 	bool _enabledCulling;
 	GLenum _cullface;
 
-	std::unordered_map<std::string, Shader::var_t> _customUniforms;
+	std::unordered_map<std::string, ShaderProgram::var_t> _customUniforms;
 
  public:
 	std::shared_ptr<Material> material;
@@ -25,7 +25,7 @@ class Drawable : public Movable {
 
 	template<typename T>
 	inline void SetCustomUniform(const std::string &varName, const T &value) {
-		this->_customUniforms[varName] = Shader::var_t(value);
+		this->_customUniforms[varName] = ShaderProgram::var_t(value);
 	}
 
 	void RemoveCustomUniform(const std::string &varName);

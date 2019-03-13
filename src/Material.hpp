@@ -8,7 +8,7 @@
 #include <glm/mat4x4.hpp>
 #include <glm/mat3x3.hpp>
 
-#include "Shader.hpp"
+#include "Shader/ShaderProgram.hpp"
 
 class Light;
 
@@ -29,7 +29,7 @@ struct ShaderVariables {
 
 class Material {
  public:
-	std::shared_ptr<Shader> shader;
+	std::shared_ptr<ShaderProgram> shader;
 
 	glm::vec3 Diffuse;
 	glm::vec3 Ambient;

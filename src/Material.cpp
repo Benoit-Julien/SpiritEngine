@@ -2,14 +2,14 @@
 #include "DefaultShader.hpp"
 
 Material::Material() {
-	this->shader = std::make_shared<Shader>();
+	this->shader = std::make_shared<ShaderProgram>();
 	this->shader->initFromStrings(default_vertex_shader, default_fragment_shader);
 
 	this->initialize();
 }
 
 Material::Material(const std::string &vertexShaderFilename, const std::string &fragmentShaderFilename) {
-	this->shader = std::make_shared<Shader>();
+	this->shader = std::make_shared<ShaderProgram>();
 	this->shader->initFromFiles(vertexShaderFilename, fragmentShaderFilename);
 
 	this->initialize();

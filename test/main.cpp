@@ -1,5 +1,9 @@
 #include <imgui/imgui.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+
+#include <stb/stb_image.h>
+
 #include <MyGlWindow.hpp>
 #include <Scene.hpp>
 
@@ -90,7 +94,8 @@ static void DrawFrameRate(DrawInformation &info) {
 			rate = counter * 4;
 			chrono = std::chrono::system_clock::now() + std::chrono::milliseconds(250);
 			counter = 0;
-		} else
+		}
+		else
 			counter++;
 
 		ImGui::Value("Frame Rate", rate);

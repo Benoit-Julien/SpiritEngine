@@ -46,7 +46,10 @@ set(SOURCES
         src/Viewer.cpp
         src/Scene.cpp
         src/Material.cpp
-        src/Shader.cpp
+        src/Shader/ShaderProgram.cpp
+        src/Shader/AShader.cpp
+        src/Shader/VertexShader.cpp
+        src/Shader/FragmentShader.cpp
         src/Objects/Object.cpp
         src/Objects/Movable.cpp
         src/Objects/Drawable.cpp
@@ -67,6 +70,11 @@ add_library(SpiritEngine STATIC ${SOURCES})
 target_link_libraries(SpiritEngine ${LIBRARIES})
 add_dependencies(SpiritEngine imgui assimp)
 
-enable_testing()
+set(CUSTOM_DEFINITIONS)
+if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    set(CUSTOM_DEFINITIONS ${CUSTOM_DEFINITIONS} _DEBUG)
+endif()
+
+target_compile_definitions(SpiritEngine PRIVATE ${CUSTOM_DEFINITIONS})
 
 add_subdirectory(test)
