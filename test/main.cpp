@@ -15,6 +15,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <iostream>
+#include <string>
 
 static int width = 1280;
 static int height = 720;
@@ -77,6 +78,26 @@ int main() {
 //#include <iostream>
 //#define GLM_ENABLE_EXPERIMENTAL
 //#include <glm/gtx/string_cast.hpp>
+
+static auto chrono = std::chrono::system_clock::now() + std::chrono::milliseconds(250);
+static int counter = 0;
+
+static void DrawFrameRate(DrawInformation &info) {
+	static int rate = 0;
+
+	if (ImGui::Begin("Frame Rate")) {
+		if (std::chrono::system_clock::now() > chrono) {
+			rate = counter * 4;
+			chrono = std::chrono::system_clock::now() + std::chrono::milliseconds(250);
+			counter = 0;
+		} else
+			counter++;
+
+		ImGui::Value("Frame Rate", rate);
+		ImGui::End();
+	}
+}
+
 int main() {
 	auto window = std::make_shared<MyGlWindow>(width, height);
 
@@ -85,7 +106,10 @@ int main() {
 	{
 		auto plane = Scene::CreateObject<Plane>();
 		plane->material = Scene::FindMaterial("plane");
-		plane->Scale(glm::vec3(10, 1, 10));
+		plane->Scale(glm::vec3(1000, 1, 1000));
+		plane->SetCustomUniform("fogColor", glm::vec3(0.5, 0.5, 0.5));
+		plane->SetCustomUniform("minDist", 0.1f);
+		plane->SetCustomUniform("maxDist", 10.0f);
 
 		auto dragon = Scene::CreateObject<Mesh>(MODELS_DIR + "dragon.obj");
 		dragon->material = Scene::FindMaterial("cartoon");
@@ -93,7 +117,10 @@ int main() {
 		dragon->Scale(glm::vec3(2, 2, 2));
 		dragon->EnableCulling();
 		dragon->SetCullFaceOption(GL_BACK);
-
+		dragon->SetCustomUniform("fogColor", glm::vec3(0.5, 0.5, 0.5));
+		dragon->SetCustomUniform("minDist", 0.1f);
+		dragon->SetCustomUniform("maxDist", 10.0f);
+/*
 		auto teapot = Scene::CreateObject<Mesh>(MODELS_DIR + "teapot.3ds");
 		teapot->material = Scene::FindMaterial("cartoon");
 		teapot->Translate(glm::vec3(0, 1, 0));
@@ -101,14 +128,17 @@ int main() {
 		teapot->Scale(glm::vec3(0.05, 0.05, 0.05));
 		teapot->EnableCulling();
 		teapot->SetCullFaceOption(GL_BACK);
-		teapot->SetEnable(false);
+		teapot->SetEnable(false);*/
 
-		auto silhouette = Scene::CreateObject<Mesh>(*dragon);
+		/*auto silhouette = Scene::CreateObject<Mesh>(*dragon);
 		silhouette->material = Scene::FindMaterial("silhouette");
 		silhouette->SetCullFaceOption(GL_FRONT);
-		silhouette->SetCustomUniform("offset", 0.01f);
+		silhouette->SetCustomUniform("offset", 0.01f);*/
+		//Scene::Destroy(silhouette, 2);
 
-		auto cow = Scene::CreateObject<Mesh>(MODELS_DIR + "cow.obj");
+		//window->RegisterFrameFunction(&DrawFrameRate);
+
+		/*auto cow = Scene::CreateObject<Mesh>(MODELS_DIR + "cow.obj");
 		cow->material = Scene::FindMaterial("cartoon");
 		cow->Translate(glm::vec3(1, 1, 0));
 		cow->Rotate(90, glm::vec3(0, 1, 0));
@@ -119,7 +149,7 @@ int main() {
 		auto silhouette2 = Scene::CreateObject<Mesh>(*cow);
 		silhouette2->material = Scene::FindMaterial("silhouette");
 		silhouette2->SetCullFaceOption(GL_FRONT);
-		silhouette2->SetCustomUniform("offset", 0.05f);
+		silhouette2->SetCustomUniform("offset", 0.05f);*/
 
 		//auto light = Scene::CreateLight<Light>();
 		//light->Translate(glm::vec3(0, 4, 0));

@@ -78,7 +78,8 @@ class Scene : public Singleton<Scene> {
 	static void RemoveLight(const unsigned int &ID);
 	static std::shared_ptr<Light> FindLight(const unsigned int &ID);
 
-	static void Update();
+	static void BeforeDrawing();
+	static void PhysicalUpdate();
 	static void Draw(const DrawInformation &info);
 
  private:

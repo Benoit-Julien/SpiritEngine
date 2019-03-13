@@ -24,6 +24,8 @@ class MyGlWindow {
 
 	std::unordered_map<unsigned int, std::function<void (DrawInformation &)>> _frameFunction;
 
+	bool _windowOpen;
+
  public:
 	int width;
 	int height;
@@ -44,6 +46,9 @@ class MyGlWindow {
 	void UnRegisterFrameFunction(const unsigned int &ID);
 
  private:
+	void physicalLoop();
+	void drawingLoop();
+
 	void initialize();
 	void draw();
 

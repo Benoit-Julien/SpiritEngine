@@ -3,11 +3,13 @@
 #include <imgui/impl/imgui_impl_glfw.h>
 #include <imgui/impl/imgui_impl_opengl3.h>
 #include <iostream>
+#include <thread>
 
 #include "MyGlWindow.hpp"
 #include "Scene.hpp"
 #include "IDGenerator.hpp"
 #include "Viewer.h"
+#include "Global.hpp"
 
 static float DEFAULT_VIEW_POINT[3] = {5, 5, 5};
 static float DEFAULT_VIEW_CENTER[3] = {0, 0, 0};
@@ -60,8 +62,18 @@ void MyGlWindow::UnRegisterFrameFunction(const unsigned int &ID) {
 }
 
 void MyGlWindow::Run() {
+	this->_windowOpen = true;
+
+	std::thread physicThread(&MyGlWindow::physicalLoop, this);
+
+	this->drawingLoop();
+	this->_windowOpen = false;
+	physicThread.join();
+}
+
+void MyGlWindow::drawingLoop() {
 	while (!glfwWindowShouldClose(this->_window)) {
-		Scene::Update();
+		Scene::BeforeDrawing();
 
 		glClearColor(0.2f, 0.2f, 0.2f, 1.0); /// background color
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -90,10 +102,17 @@ void MyGlWindow::Run() {
 
 		/* Swap front and back buffers */
 		glfwSwapBuffers(this->_window);
+
 		/* Poll for and process events */
 		glfwPollEvents();
 
-		this->mouseDragging(display_w, display_h);
+		this->mouseDragging(this->width, this->height);
+	}
+}
+
+void MyGlWindow::physicalLoop() {
+	while (this->_windowOpen) {
+		Scene::PhysicalUpdate();
 	}
 }
 
@@ -143,7 +162,6 @@ void MyGlWindow::initialize() {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO &io = ImGui::GetIO();
-	(void) io;
 
 	const char *glsl_version = "#version 410";
 
@@ -214,12 +232,12 @@ void MyGlWindow::mouse_button_callback(int button, int action, int mods) {
 }
 
 void MyGlWindow::mouseDragging(double width, double height) {
-	if (_lbutton_down) {
+	if (this->_lbutton_down) {
 		float fractionChangeX = static_cast<float>(this->_cx - this->_lastMouseX) / static_cast<float>(width);
 		float fractionChangeY = static_cast<float>(this->_lastMouseY - this->_cy) / static_cast<float>(height);
 		this->_viewer->rotate(fractionChangeX, fractionChangeY);
 	}
-	else if (_rbutton_down) {
+	else if (this->_rbutton_down) {
 		float fractionChangeX = static_cast<float>(this->_cx - this->_lastMouseX) / static_cast<float>(width);
 		float fractionChangeY = static_cast<float>(this->_lastMouseY - this->_cy) / static_cast<float>(height);
 		this->_viewer->translate(-fractionChangeX, -fractionChangeY, 1);

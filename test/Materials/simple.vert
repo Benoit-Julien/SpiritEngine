@@ -1,6 +1,6 @@
 #version 410
 
-layout (location = 0) in vec3 vertexPosition; // set the attr. number
+layout (location = 0) in vec3 vertexPosition;// set the attr. number
 layout (location = 1) in vec3 vertexNormal;
 
 out vec3 fNormal;
@@ -13,9 +13,9 @@ uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
 void main() {
-	fNormal = normalize(normalMatrix * vertexNormal);
-	//pos : position in camera coord.
-  vec4 pos = viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);
-  fPosition = pos.xyz;
-  gl_Position = projectionMatrix * pos;
+    fNormal = normalize(normalMatrix * vertexNormal);
+    //pos : position in camera coord.
+    vec4 pos = viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);
+    fPosition = pos.xyz;
+    gl_Position = projectionMatrix * pos;
 }

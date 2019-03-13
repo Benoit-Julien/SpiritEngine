@@ -49,6 +49,10 @@ const float c = 0.01;
 const int levels = 3;
 const float scaleFactor = 1.0 / levels;
 
+uniform vec3 fogColor;
+uniform float minDist;
+uniform float maxDist;
+
 // We need to create at least one "out vec4" for setting color fragment colors
 out vec4 fragColor;// r,g,b,a
 
@@ -116,9 +120,17 @@ vec3 CalcSpotColor(SpotLight light) {
 
 void main() {
     vec3 result = material.ambient;
-    for (int i = 0; i < lightNumber; i++)
-    result += CalcColor(lights[i]);
-    for (int i = 0; i < spotNumber; i++)
-    result += CalcSpotColor(spotLights[i]);
-    fragColor = vec4(result, 1);
+    for (int i = 0; i < lightNumber; i++) {
+        result += CalcColor(lights[i]);
+    }
+    for (int i = 0; i < spotNumber; i++) {
+        result += CalcSpotColor(spotLights[i]);
+    }
+
+    float z = length(fPosition);
+    float f = (maxDist - z) / (maxDist - minDist);
+    f = clamp(f, 0.0, 1.0);
+    vec3 color = mix(fogColor, result, f);
+
+    fragColor = vec4(color, 1);
 }

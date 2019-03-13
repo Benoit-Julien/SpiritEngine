@@ -10,3 +10,6 @@
 [submodule "imgui"]
 	path = imgui
 	url = https://github.com/Benoit-Julien/imgui
+[submodule "stb"]
+	path = stb
+	url = https://github.com/Benoit-Julien/stb
