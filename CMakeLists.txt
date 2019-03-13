@@ -20,7 +20,6 @@ if (GLM_FOUND)
 endif ()
 
 add_subdirectory(imgui)
-add_subdirectory(soil)
 
 set(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
 set(ASSIMP_BUILD_TESTS OFF)
@@ -28,7 +27,6 @@ add_subdirectory(assimp)
 
 set(LIBRARIES
         imgui
-        soil
         glfw
         ${GLEW_LIBRARIES}
         glm
@@ -38,7 +36,7 @@ set(LIBRARIES
 
 include_directories(rapidjson/include)
 include_directories(imgui)
-include_directories(soil/include)
+include_directories(stb)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 include_directories(assimp/include)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/assimp/include)
@@ -67,7 +65,7 @@ set(SOURCES
 
 add_library(SpiritEngine STATIC ${SOURCES})
 target_link_libraries(SpiritEngine ${LIBRARIES})
-add_dependencies(SpiritEngine imgui soil assimp)
+add_dependencies(SpiritEngine imgui assimp)
 
 enable_testing()
 
