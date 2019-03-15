@@ -24,6 +24,7 @@ class Scene : public Singleton<Scene> {
 
 	std::unordered_map<unsigned int, std::shared_ptr<Drawable>> _objects;
 	std::unordered_map<std::string, std::shared_ptr<Material>> _materials;
+	std::unordered_map<std::string, std::shared_ptr<Texture>> _textures;
 	std::unordered_map<unsigned int, std::shared_ptr<Light>> _lights;
 
 	std::vector<std::pair<std::shared_ptr<Drawable>, std::chrono::time_point<std::chrono::system_clock>>> _toDestroy;
@@ -53,6 +54,18 @@ class Scene : public Singleton<Scene> {
 		return mat;
 	}
 
+	template<typename... Args>
+	static std::shared_ptr<Texture> CreateTexture(const std::string &name, const Args& ...args) {
+		auto self = Scene::getSingletonPtr();
+
+		if (self->_textures.find(name) != self->_textures.end())
+			throw std::logic_error("Cannot create a texture named " + name + " because an other with the same name already exist.");
+
+		auto tex = std::make_shared<Texture>(args...);
+		self->_textures[name] = tex;
+		return tex;
+	}
+
 	template<class T, typename... Args>
 	static std::shared_ptr<T> CreateLight(const Args& ...args) {
 		auto self = Scene::getSingletonPtr();
@@ -73,7 +86,11 @@ class Scene : public Singleton<Scene> {
 
 	static void RemoveMaterial(const std::string &name);
 	static std::shared_ptr<Material> FindMaterial(const std::string &name);
-	static void LoadMaterialFile(const std::string &fileName);
+	static void LoadMaterialFile(const std::string &filename);
+
+	static void RemoveTexture(const std::string &name);
+	static std::shared_ptr<Texture> FindTexture(const std::string &name);
+	static void LoadTextureFile(const std::string &filename);
 
 	static void RemoveLight(const unsigned int &ID);
 	static std::shared_ptr<Light> FindLight(const unsigned int &ID);

@@ -46,6 +46,7 @@ set(SOURCES
         src/Viewer.cpp
         src/Scene.cpp
         src/Material.cpp
+        src/Texture.cpp
         src/Shader/ShaderProgram.cpp
         src/Shader/AShader.cpp
         src/Shader/VertexShader.cpp

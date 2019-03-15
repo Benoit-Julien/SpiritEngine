@@ -34,3 +34,5 @@
 cmake-build-debug
 *.obj
 *.3ds
+*.png
+*.jpg

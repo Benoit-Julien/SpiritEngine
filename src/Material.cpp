@@ -23,9 +23,14 @@ void Material::use() {
 	this->shader->setUniform("material.diffuse", this->Diffuse);
 	this->shader->setUniform("material.specular", this->Specular);
 	this->shader->setUniform("material.shiness", this->shiness);
+
+	if (this->texture)
+		this->texture->use();
 }
 
 void Material::disable() {
+	if (this->texture)
+		this->texture->disable();
 	this->shader->disable();
 }
 

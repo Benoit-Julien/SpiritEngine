@@ -34,6 +34,12 @@
       "diffuse": [0, 0, 0],
       "ambient": [0, 0, 0],
       "specular": [0, 0, 0]
+    },
+    {
+      "name": "textured",
+      "vertex": "../Shaders/simple.vert",
+      "fragment": "../Shaders/BlinnPhongShading.frag",
+      "texture": "earth"
     }
   ]
 }

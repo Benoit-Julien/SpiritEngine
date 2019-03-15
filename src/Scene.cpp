@@ -84,6 +84,26 @@ std::shared_ptr<Material> Scene::FindMaterial(const std::string &name) {
 	return elem->second;
 }
 
+void Scene::RemoveTexture(const std::string &name) {
+	auto self = Scene::getSingletonPtr();
+
+	auto elem = self->_textures.find(name);
+	if (elem == self->_textures.end())
+		throw std::logic_error("Cannot remove texture named " + name + " because it's not exist.");
+	self->_textures.erase(elem);
+}
+
+std::shared_ptr<Texture> Scene::FindTexture(const std::string &name) {
+	auto self = Scene::getSingletonPtr();
+
+	auto elem = self->_textures.find(name);
+	if (elem == self->_textures.end()) {
+		std::cerr << "Cannot find texture named " << name << " because it's not exist." << std::endl;
+		return nullptr;
+	}
+	return elem->second;
+}
+
 static glm::vec3 getColor(const rapidjson::Value &value) {
 	assert(value.IsArray());
 	assert(value.GetArray().Size() >= 3);
@@ -97,18 +117,18 @@ static glm::vec3 getColor(const rapidjson::Value &value) {
 	return glm::vec3(r, g, b);
 }
 
-void Scene::LoadMaterialFile(const std::string &fileName) {
-	if (fileName.rfind(".json") == std::string::npos)
-		throw std::logic_error("Cannot load materials file (" + fileName + ") because it isn't a json file.");
+void Scene::LoadMaterialFile(const std::string &filename) {
+	if (filename.rfind(".json") == std::string::npos)
+		throw std::logic_error("Cannot load materials file (" + filename + ") because it isn't a json file.");
 
-	std::ifstream ifs(fileName);
+	std::ifstream ifs(filename);
 	if (!ifs)
-		throw std::logic_error("Cannot read materials file : " + fileName);
+		throw std::logic_error("Cannot read materials file : " + filename);
 
 	std::string fileDirectory;
-	std::size_t slashPos = fileName.rfind('/');
+	std::size_t slashPos = filename.rfind('/');
 	if (slashPos != std::string::npos)
-		fileDirectory = fileName.substr(0, slashPos) + "/";
+		fileDirectory = filename.substr(0, slashPos) + "/";
 
 	rapidjson::IStreamWrapper isw(ifs);
 	rapidjson::Document document;
@@ -147,6 +167,45 @@ void Scene::LoadMaterialFile(const std::string &fileName) {
 			assert(material["shiness"].IsNumber());
 			mat->shiness = material["shiness"].GetFloat();
 		}
+		if (material.HasMember("texture"))
+			mat->texture = FindTexture(material["texture"].GetString());
+	}
+}
+
+void Scene::LoadTextureFile(const std::string &filename) {
+	if (filename.rfind(".json") == std::string::npos)
+		throw std::logic_error("Cannot load textures file (" + filename + ") because it isn't a json file.");
+
+	std::ifstream ifs(filename);
+	if (!ifs)
+		throw std::logic_error("Cannot read textures file : " + filename);
+
+	std::string fileDirectory;
+	std::size_t slashPos = filename.rfind('/');
+	if (slashPos != std::string::npos)
+		fileDirectory = filename.substr(0, slashPos) + "/";
+
+	rapidjson::IStreamWrapper isw(ifs);
+	rapidjson::Document document;
+	document.ParseStream(isw);
+
+	if (document.HasParseError()) {
+		throw std::runtime_error("Error(offset "
+														 + std::to_string(document.GetErrorOffset())
+														 + ": " + GetParseError_En(document.GetParseError()));
+	}
+	assert(document.IsObject());
+	assert(document.HasMember("textures") && document["textures"].IsArray());
+	for (auto &texture : document["textures"].GetArray()) {
+		assert(texture.IsObject());
+		assert(texture.HasMember("name") && texture["name"].IsString());
+		assert(texture.HasMember("image") && texture["image"].IsString());
+
+		std::string image = texture["image"].GetString();
+		if (image[0] != '/')
+			image = fileDirectory + image;
+
+		Scene::CreateTexture(texture["name"].GetString(), image);
 	}
 }
 

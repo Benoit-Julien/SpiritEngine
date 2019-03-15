@@ -36,6 +36,12 @@ static int height = 720;
 #define MATERIALS_DIR std::string(MATERIALS_DIRECTORY)
 #endif
 
+#ifndef TEXTURES_DIRECTORY
+#define TEXTURES_DIR std::string("")
+#else
+#define TEXTURES_DIR std::string(TEXTURES_DIRECTORY)
+#endif
+
 #ifndef MODELS_DIRECTORY
 #define MODELS_DIR std::string("")
 #else
@@ -106,6 +112,7 @@ static void DrawFrameRate(DrawInformation &info) {
 int main() {
 	auto window = std::make_shared<MyGlWindow>(width, height);
 
+	Scene::LoadTextureFile(TEXTURES_DIR + "textures.json");
 	Scene::LoadMaterialFile(MATERIALS_DIR + "materials.json");
 	//Scene::LoadMaterialFile(MATERIALS_DIR + "simple.json");
 	{
