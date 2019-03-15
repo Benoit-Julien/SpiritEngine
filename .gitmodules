@@ -10,3 +10,12 @@
 [submodule "stb"]
 	path = stb
 	url = https://github.com/Benoit-Julien/stb
+[submodule "glad"]
+	path = glad
+	url = https://github.com/Dav1dde/glad.git
+[submodule "glfw"]
+	path = glfw
+	url = https://github.com/glfw/glfw.git
+[submodule "glm"]
+	path = glm
+	url = https://github.com/g-truc/glm.git

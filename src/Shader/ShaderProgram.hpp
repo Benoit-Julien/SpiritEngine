@@ -7,7 +7,7 @@
 #include <variant>
 #include <string>
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 
 #include "VertexShader.hpp"
 #include "FragmentShader.hpp"

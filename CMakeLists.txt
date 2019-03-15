@@ -3,43 +3,51 @@ project(SpiritEngine)
 set(CMAKE_CXX_STANDARD 17)
 
 find_package(OpenGL 4.1 REQUIRED)
-find_package(glfw3 3.2 REQUIRED)
 if (OPENGL_FOUND)
     include_directories(${OPENGL_INCLUDE_DIR})
     link_directories(${OPENGL_gl_LIBRARY})
 endif ()
 
-find_package(GLEW REQUIRED)
-if (GLEW_FOUND)
-    include_directories(${GLEW_INCLUDE_DIRS})
-endif ()
+add_subdirectory(glad)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/glad/include)
 
-find_package(glm REQUIRED)
-if (GLM_FOUND)
-    include_directories(${glm_DIR})
-endif ()
+set(BUILD_SHARED_LIBS ON)
+set(GLFW_BUILD_EXAMPLES OFF)
+set(GLFW_BUILD_TESTS OFF)
+set(GLFW_BUILD_DOCS OFF)
+set(GLFW_INSTALL OFF)
+add_subdirectory(glfw)
+include_directories(glfw/include)
 
-add_subdirectory(imgui)
+set(BUILD_SHARED_LIBS ON)
+set(BUILD_STATIC_LIBS OFF)
+set(GLM_TEST_ENABLE_CXX_17 ON)
+set(GLM_TEST_ENABLE OFF)
+add_subdirectory(glm)
+include_directories(glm)
 
 set(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
 set(ASSIMP_BUILD_TESTS OFF)
 add_subdirectory(assimp)
+include_directories(assimp/include)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/assimp/include)
+
+set(OPENGL_LOADER_GLAD ON)
+add_subdirectory(imgui)
+include_directories(imgui)
 
 set(LIBRARIES
-        imgui
-        glfw
-        ${GLEW_LIBRARIES}
-        glm
         ${OPENGL_gl_LIBRARY}
+        glad
+        glfw
+        glm_shared
+        imgui
         assimp
         )
 
 include_directories(rapidjson/include)
-include_directories(imgui)
 include_directories(stb)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
-include_directories(assimp/include)
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/assimp/include)
 
 set(SOURCES
         src/MyGlWindow.cpp
@@ -69,7 +77,7 @@ set(SOURCES
 
 add_library(SpiritEngine STATIC ${SOURCES})
 target_link_libraries(SpiritEngine ${LIBRARIES})
-add_dependencies(SpiritEngine imgui assimp)
+add_dependencies(SpiritEngine glad glfw glm imgui assimp)
 
 set(CUSTOM_DEFINITIONS)
 if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")

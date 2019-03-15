@@ -174,12 +174,15 @@ void MyGlWindow::initialize() {
 
 	glfwMakeContextCurrent(this->_window);
 	/* Make the window's context current */
-	glewExperimental = GL_TRUE;
-	GLenum err = glewInit();
-	if (err != GLEW_OK) {
+	//glewExperimental = GL_TRUE;
+	//GLenum err = glewInit();
+	//if (err != GLEW_OK) {
 		//Problem: glewInit failed, something is seriously wrong.
-		throw std::runtime_error("glewInit failed, aborting.");
-	}
+		//throw std::runtime_error("glewInit failed, aborting.");
+	//}
+	if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress))
+		throw std::runtime_error("Failed to initialize OpenGL context.");
+
 	glfwSwapInterval(1); //enable vsync
 
 	std::cout << "OpenGL " << glGetString(GL_VERSION) << ", GLSL " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;

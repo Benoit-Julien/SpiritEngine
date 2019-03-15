@@ -1,7 +1,7 @@
 #ifndef COMPUTERGRAPHICS1_MYGLWINDOW_HPP
 #define COMPUTERGRAPHICS1_MYGLWINDOW_HPP
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <memory>
 #include <unordered_map>

@@ -2,7 +2,7 @@
 #define SPIRITENGINE_ASHADER_HPP
 
 #include <string>
-#include <GL/glew.h>
+#include <glad/glad.h>
 
 class AShader {
 	const GLenum _shaderType;

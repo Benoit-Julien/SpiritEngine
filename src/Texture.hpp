@@ -2,7 +2,7 @@
 #define SPIRITENGINE_TEXTURE_HPP
 
 #include <string>
-#include <GL/glew.h>
+#include <glad/glad.h>
 
 class Texture {
 	unsigned char *_image;
