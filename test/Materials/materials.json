@@ -36,10 +36,24 @@
       "specular": [0, 0, 0]
     },
     {
-      "name": "textured",
-      "vertex": "../Shaders/simple.vert",
-      "fragment": "../Shaders/BlinnPhongShading.frag",
-      "texture": "earth"
+      "name": "brick",
+      "vertex": "../Shaders/textured.vert",
+      "fragment": "../Shaders/textured.frag",
+      "texture": "brick",
+      "diffuse": [0.5, 0.5, 0.5],
+      "ambient": [0.5, 0.5, 0.5],
+      "specular": [0.1, 0.1, 0.1],
+      "shiness": 5
+    },
+    {
+      "name": "earth",
+      "vertex": "../Shaders/textured.vert",
+      "fragment": "../Shaders/textured.frag",
+      "texture": "earth",
+      "diffuse": [0.5, 0.5, 0.5],
+      "ambient": [0.5, 0.5, 0.5],
+      "specular": [0.1, 0.1, 0.1],
+      "shiness": 5
     }
   ]
 }

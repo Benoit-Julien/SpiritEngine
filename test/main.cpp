@@ -123,6 +123,36 @@ int main() {
 		plane->SetCustomUniform("minDist", 0.1f);
 		plane->SetCustomUniform("maxDist", 10.0f);
 
+		/*auto cube = Scene::CreateObject<Cube>();
+		cube->Translate(glm::vec3(0, 1.5, 0));
+		cube->material = Scene::FindMaterial("brick");*/
+		auto world = Scene::CreateObject<Sphere>();
+		world->Translate(glm::vec3(0, 2, 0));
+		world->Rotate(180, glm::vec3(1, 0, 0));
+		world->material = Scene::FindMaterial("earth");
+
+		window->RegisterFrameFunction([world](DrawInformation &) {
+			world->Rotate(1, glm::vec3(0, 1, 0));
+		});
+
+		/*auto spot = Scene::CreateLight<SpotLight>(glm::vec3(0, 0, 0), 2);
+		auto spot2 = Scene::CreateLight<SpotLight>(*spot);
+		spot->Translate(glm::vec3(4, 4, 0));
+		spot2->Translate(glm::vec3(-4, 4, 0));*/
+
+		auto light = Scene::CreateLight<Light>();
+		light->Translate(glm::vec3(4, 4, 0));
+
+		auto light2 = Scene::CreateLight<Light>();
+		light2->Translate(glm::vec3(-4, 4, 0));
+
+		auto light3 = Scene::CreateLight<Light>();
+		light3->Translate(glm::vec3(0, 4, 4));
+
+		auto light4 = Scene::CreateLight<Light>();
+		light4->Translate(glm::vec3(0, 4, -4));
+
+/*
 		auto dragon = Scene::CreateObject<Mesh>(MODELS_DIR + "dragon.obj");
 		dragon->material = Scene::FindMaterial("cartoon");
 		dragon->Translate(glm::vec3(0, 1, 0));
@@ -131,7 +161,7 @@ int main() {
 		dragon->SetCullFaceOption(GL_BACK);
 		dragon->SetCustomUniform("fogColor", glm::vec3(0.5, 0.5, 0.5));
 		dragon->SetCustomUniform("minDist", 0.1f);
-		dragon->SetCustomUniform("maxDist", 10.0f);
+		dragon->SetCustomUniform("maxDist", 10.0f);*/
 /*
 		auto teapot = Scene::CreateObject<Mesh>(MODELS_DIR + "teapot.3ds");
 		teapot->material = Scene::FindMaterial("cartoon");
@@ -163,12 +193,8 @@ int main() {
 		silhouette2->SetCullFaceOption(GL_FRONT);
 		silhouette2->SetCustomUniform("offset", 0.05f);*/
 
-		//auto light = Scene::CreateLight<Light>();
-		//light->Translate(glm::vec3(0, 4, 0));
-		auto spot = Scene::CreateLight<SpotLight>(glm::vec3(0, 0, 0), 2);
-		auto spot2 = Scene::CreateLight<SpotLight>(*spot);
-		spot->Translate(glm::vec3(4, 4, 0));
-		spot2->Translate(glm::vec3(-4, 4, 0));
+
+
 		//}
 		/*
 		auto model2 = Scene::CreateObject<Mesh>(MODELS_DIR + "buddha.obj");

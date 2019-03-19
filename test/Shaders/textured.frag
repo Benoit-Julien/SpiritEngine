@@ -29,10 +29,13 @@ struct Material {
     vec3 diffuse;
     vec3 specular;
     float shiness;
+
+    sampler2D tex;
 };
 
 in vec3 fNormal;
 in vec3 fPosition;
+in vec2 texCoord;
 
 uniform uint lightNumber;
 uniform Light lights[MAX_LIGHTS];
@@ -46,9 +49,6 @@ const float a = 1.0;
 const float b = 0.1;
 const float c = 0.01;
 
-uniform vec3 fogColor;
-uniform float minDist;
-uniform float maxDist;
 
 // We need to create at least one "out vec4" for setting color fragment colors
 out vec4 fragColor;// r,g,b,a
@@ -59,7 +59,7 @@ float CalcAttenuation(float distance) {
     return 1.0 / (a + b*d + c*d2);
 }
 
-vec3 CalcColor(Light light) {
+vec4 CalcColor(Light light, vec4 texColor) {
     vec3 L = light.position - fPosition;
     float d = length(L);
     float attenuation = CalcAttenuation(d);
@@ -73,13 +73,14 @@ vec3 CalcColor(Light light) {
     float dotHN = max(dot(H, N), 0);
     float pf = pow(dotHN, material.shiness);
 
+    //vec3 ambient = material.ambient * light.ambient * light.intensity * attenuation;
     vec3 diffuse = material.diffuse * light.diffuse * dotNL * light.intensity * attenuation;
     vec3 specular = material.specular * light.specular * pf * light.intensity * attenuation;
 
-    return diffuse + specular;
+    return (vec4(diffuse, 1.0) * texColor) + vec4(specular, 1.0);
 }
 
-vec3 CalcSpotColor(SpotLight light) {
+vec4 CalcSpotColor(SpotLight light, vec4 texColor) {
     vec3 L = light.position - fPosition;
     float d = length(L);
     float attenuation = CalcAttenuation(d);
@@ -105,25 +106,21 @@ vec3 CalcSpotColor(SpotLight light) {
     }
     attenuation *= spotAttenuation;
 
+    //vec3 ambient = material.ambient * light.ambient * light.intensity * attenuation;
     vec3 diffuse = material.diffuse * light.diffuse * light.intensity * dotNL * attenuation;
     vec3 specular = material.specular * light.specular * light.intensity * pf * attenuation;
 
-    return diffuse + specular;
+    return (vec4(diffuse, 1.0) * texColor) + vec4(specular, 1.0);
 }
 
 void main() {
-    vec3 result = material.ambient;
-    for (int i = 0; i < lightNumber; i++) {
-        result += CalcColor(lights[i]);
-    }
-    for (int i = 0; i < spotNumber; i++) {
-        result += CalcSpotColor(spotLights[i]);
-    }
+    vec4 texColor = texture(material.tex, texCoord);
+    vec4 result = vec4(material.ambient, 1.0) * texColor;
 
-    //float z = length(fPosition.xyz);
-    //float f = (maxDist - z) / (maxDist - minDist);
-    //f = clamp(f, 0.0, 1.0);
-    //vec3 color = mix(fogColor, result, f);
+    for (int i = 0; i < lightNumber; i++)
+        result += CalcColor(lights[i], texColor);
+    for (int i = 0; i < spotNumber; i++)
+        result += CalcSpotColor(spotLights[i], texColor);
 
-    fragColor = vec4(result, 1);
+    fragColor = result;
 }

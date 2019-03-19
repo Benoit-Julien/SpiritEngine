@@ -5,6 +5,7 @@
 #include <glad/glad.h>
 
 class Texture {
+	std::string _filename;
 	unsigned char *_image;
 	int _width;
 	int _height;
@@ -25,6 +26,9 @@ class Texture {
 
 	void use();
 	void disable();
+
+ private:
+	void setup();
 };
 
 

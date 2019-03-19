@@ -2,7 +2,11 @@
   "textures": [
     {
       "name": "earth",
-      "image": "images/2k_earth.jpg"
+      "image": "images/earth.jpg"
+    },
+    {
+      "name": "brick",
+      "image": "images/brick.jpg"
     }
   ]
 }
