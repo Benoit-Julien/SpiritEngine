@@ -1,12 +1,6 @@
 #include <exception>
 #include <iostream>
 #include <algorithm>
-#include <fstream>
-#include <algorithm>
-
-#include <rapidjson/document.h>
-#include <rapidjson/istreamwrapper.h>
-#include <rapidjson/error/en.h>
 
 #include "Scene.hpp"
 #include "Objects/ModelLoader.hpp"
@@ -102,111 +96,6 @@ std::shared_ptr<Texture> Scene::FindTexture(const std::string &name) {
 		return nullptr;
 	}
 	return elem->second;
-}
-
-static glm::vec3 getColor(const rapidjson::Value &value) {
-	assert(value.IsArray());
-	assert(value.GetArray().Size() >= 3);
-	assert(value.GetArray()[0].IsNumber());
-	assert(value.GetArray()[1].IsNumber());
-	assert(value.GetArray()[2].IsNumber());
-
-	float r = value.GetArray()[0].GetFloat();
-	float g = value.GetArray()[1].GetFloat();
-	float b = value.GetArray()[2].GetFloat();
-	return glm::vec3(r, g, b);
-}
-
-void Scene::LoadMaterialFile(const std::string &filename) {
-	if (filename.rfind(".json") == std::string::npos)
-		throw std::logic_error("Cannot load materials file (" + filename + ") because it isn't a json file.");
-
-	std::ifstream ifs(filename);
-	if (!ifs)
-		throw std::logic_error("Cannot read materials file : " + filename);
-
-	std::string fileDirectory;
-	std::size_t slashPos = filename.rfind('/');
-	if (slashPos != std::string::npos)
-		fileDirectory = filename.substr(0, slashPos) + "/";
-
-	rapidjson::IStreamWrapper isw(ifs);
-	rapidjson::Document document;
-	document.ParseStream(isw);
-
-	if (document.HasParseError()) {
-		throw std::runtime_error("Error(offset "
-														 + std::to_string(document.GetErrorOffset())
-														 + ": " + GetParseError_En(document.GetParseError()));
-	}
-
-	assert(document.IsObject());
-	assert(document.HasMember("materials") && document["materials"].IsArray());
-	for (auto &material : document["materials"].GetArray()) {
-		assert(material.IsObject());
-		assert(material.HasMember("name") && material["name"].IsString());
-		assert(material.HasMember("vertex") && material["vertex"].IsString());
-		assert(material.HasMember("fragment") && material["fragment"].IsString());
-
-		std::string vertexShader = material["vertex"].GetString();
-		std::string fragmentShader = material["fragment"].GetString();
-		if (vertexShader[0] != '/')
-			vertexShader = fileDirectory + vertexShader;
-		if (fragmentShader[0] != '/')
-			fragmentShader = fileDirectory + fragmentShader;
-
-		auto mat = Scene::CreateMaterial(material["name"].GetString(), vertexShader, fragmentShader);
-
-		if (material.HasMember("diffuse"))
-			mat->Diffuse = getColor(material["diffuse"]);
-		if (material.HasMember("ambient"))
-			mat->Ambient = getColor(material["ambient"]);
-		if (material.HasMember("specular"))
-			mat->Specular = getColor(material["specular"]);
-		if (material.HasMember("shiness")) {
-			assert(material["shiness"].IsNumber());
-			mat->shiness = material["shiness"].GetFloat();
-		}
-		if (material.HasMember("texture"))
-			mat->texture = FindTexture(material["texture"].GetString());
-	}
-}
-
-void Scene::LoadTextureFile(const std::string &filename) {
-	if (filename.rfind(".json") == std::string::npos)
-		throw std::logic_error("Cannot load textures file (" + filename + ") because it isn't a json file.");
-
-	std::ifstream ifs(filename);
-	if (!ifs)
-		throw std::logic_error("Cannot read textures file : " + filename);
-
-	std::string fileDirectory;
-	std::size_t slashPos = filename.rfind('/');
-	if (slashPos != std::string::npos)
-		fileDirectory = filename.substr(0, slashPos) + "/";
-
-	rapidjson::IStreamWrapper isw(ifs);
-	rapidjson::Document document;
-	document.ParseStream(isw);
-
-	if (document.HasParseError()) {
-		throw std::runtime_error("Error(offset "
-														 + std::to_string(document.GetErrorOffset())
-														 + ": " + GetParseError_En(document.GetParseError()));
-	}
-	assert(document.IsObject());
-	assert(document.HasMember("textures") && document["textures"].IsArray());
-	for (auto &texture : document["textures"].GetArray()) {
-		assert(texture.IsObject());
-		assert(texture.HasMember("name") && texture["name"].IsString());
-		assert(texture.HasMember("image") && texture["image"].IsString());
-
-		std::string image = texture["image"].GetString();
-		if (image[0] != '/')
-			image = fileDirectory + image;
-
-		Scene::CreateTexture(texture["name"].GetString(), image);
-	}
 }
 
 void Scene::RemoveLight(const unsigned int &ID) {

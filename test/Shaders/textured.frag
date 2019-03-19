@@ -30,7 +30,7 @@ struct Material {
     vec3 specular;
     float shiness;
 
-    sampler2D tex;
+    sampler2D tex1;
 };
 
 in vec3 fNormal;
@@ -114,7 +114,7 @@ vec4 CalcSpotColor(SpotLight light, vec4 texColor) {
 }
 
 void main() {
-    vec4 texColor = texture(material.tex, texCoord);
+    vec4 texColor = texture(material.tex1, texCoord);
     vec4 result = vec4(material.ambient, 1.0) * texColor;
 
     for (int i = 0; i < lightNumber; i++)

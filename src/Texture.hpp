@@ -5,6 +5,34 @@
 #include <glad/glad.h>
 
 class Texture {
+ public:
+	enum class MinFilterEnum : GLuint {
+		NEAREST = GL_NEAREST,
+		LINEAR = GL_LINEAR,
+		NEAREST_MIPMAP_NEAREST = GL_NEAREST_MIPMAP_NEAREST,
+		LINEAR_MIPMAP_NEAREST = GL_LINEAR_MIPMAP_NEAREST,
+		NEAREST_MIPMAP_LINEAR = GL_NEAREST_MIPMAP_LINEAR,
+		LINEAR_MIPMAP_LINEAR = GL_LINEAR_MIPMAP_LINEAR
+	};
+	enum class MagFilterEnum : GLuint {
+		NEAREST = GL_NEAREST,
+		LINEAR = GL_LINEAR
+	};
+	enum class WrapEnum : GLint {
+		CLAMP_TO_EDGE = GL_CLAMP_TO_EDGE,
+		MIRRORED_REPEAT = GL_MIRRORED_REPEAT,
+		REPEAT = GL_REPEAT,
+	};
+	enum class ColorFormatEnum : GLint {
+		RED = GL_RED,
+		RG = GL_RG,
+		RGB = GL_RGB,
+		RGBA = GL_RGBA,
+		DEPTH_COMPONENT = GL_DEPTH_COMPONENT,
+		DEPTH_STENCIL = GL_DEPTH_STENCIL
+	};
+
+ private:
 	std::string _filename;
 	unsigned char *_image;
 	int _width;
@@ -14,7 +42,14 @@ class Texture {
 	GLuint _tex_2d;
 
  public:
-	explicit Texture(const std::string &filename);
+	MinFilterEnum MinFilter;
+	MagFilterEnum MagFilter;
+	WrapEnum SWrap;
+	WrapEnum TWrap;
+	ColorFormatEnum ColorFormat;
+
+ public:
+	explicit Texture();
 	~Texture();
 
 	Texture(const Texture &texture) = delete;
@@ -23,6 +58,8 @@ class Texture {
 	Texture &operator=(Texture &&texture) = delete;
 
 	inline const unsigned char *GetImage() const { return this->_image; }
+
+	void initFromFile(const std::string &filename);
 
 	void use();
 	void disable();

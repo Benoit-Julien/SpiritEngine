@@ -55,6 +55,8 @@ set(SOURCES
         src/Scene.cpp
         src/Material.cpp
         src/Texture.cpp
+        src/FileLoader/MaterialsFileLoader.cpp
+        src/FileLoader/TexturesFileLoader.cpp
         src/Shader/ShaderProgram.cpp
         src/Shader/AShader.cpp
         src/Shader/VertexShader.cpp
@@ -75,7 +77,7 @@ set(SOURCES
         #src/Objects/Primitives/CheckeredFloor.cpp
         #)
 
-add_library(SpiritEngine STATIC ${SOURCES})
+add_library(SpiritEngine SHARED ${SOURCES})
 target_link_libraries(SpiritEngine ${LIBRARIES})
 add_dependencies(SpiritEngine glad glfw glm imgui assimp)
 

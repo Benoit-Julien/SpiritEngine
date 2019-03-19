@@ -11,6 +11,11 @@
 #include "Shader/ShaderProgram.hpp"
 #include "Texture.hpp"
 
+#define FIND_TEXTURE \
+	auto t = std::find_if(this->textures.begin(), this->textures.end(), [texture](decltype(texture) a) { \
+		return a.get() == texture.get(); \
+	});
+
 class Light;
 
 struct ShaderVariables {
@@ -31,7 +36,7 @@ struct ShaderVariables {
 class Material {
  public:
 	std::shared_ptr<ShaderProgram> shader;
-	std::shared_ptr<Texture> texture;
+	std::vector<std::shared_ptr<Texture>> textures;
 
 	glm::vec3 Diffuse;
 	glm::vec3 Ambient;
@@ -45,6 +50,9 @@ class Material {
 
 	void use();
 	void disable();
+
+	void AddTexture(std::shared_ptr<Texture> texture);
+	void RemoveTexture(std::shared_ptr<Texture> texture);
 
  private:
 	void initialize();

@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "Material.hpp"
 #include "DefaultShader.hpp"
 
@@ -24,16 +26,49 @@ void Material::use() {
 	this->shader->setUniform("material.specular", this->Specular);
 	this->shader->setUniform("material.shiness", this->shiness);
 
-	if (this->texture) {
-		this->texture->use();
-		this->shader->setUniform("material.tex", 0);
+	if (!this->textures.empty()) {
+		int index = 0;
+		for (auto &text : this->textures) {
+			text->use();
+			this->shader->setUniform("material.tex" + std::to_string(index + 1), index);
+			index++;
+		}
 	}
 }
 
 void Material::disable() {
-	if (this->texture)
-		this->texture->disable();
+	if (!this->textures.empty())
+		for (auto &text : this->textures)
+			text->disable();
 	this->shader->disable();
+}
+
+void Material::AddTexture(std::shared_ptr<Texture> texture) {
+	FIND_TEXTURE
+	if (t != this->textures.end())
+#ifdef _DEBUG
+	{
+		std::cerr << "Cannot add texture to this material because it's already present." << std::endl;
+		return;
+	}
+#elif
+		return;
+#endif
+	this->textures.push_back(texture);
+}
+
+void Material::RemoveTexture(std::shared_ptr<Texture> texture) {
+	FIND_TEXTURE
+	if (t == this->textures.end())
+#ifdef _DEBUG
+	{
+		std::cerr << "Cannot remove this texture to this material because it's not present." << std::endl;
+		return;
+	}
+#elif
+	return;
+#endif
+	this->textures.erase(t);
 }
 
 void Material::initialize() {

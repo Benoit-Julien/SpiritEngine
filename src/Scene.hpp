@@ -12,6 +12,9 @@
 #include "Objects/Lights/Light.hpp"
 #include "Objects/Lights/SpotLight.hpp"
 
+#include "FileLoader/MaterialsFileLoader.hpp"
+#include "FileLoader/TexturesFileLoader.hpp"
+
 #define MAX_LIGHTS 32
 
 struct DrawInformation {
@@ -54,14 +57,13 @@ class Scene : public Singleton<Scene> {
 		return mat;
 	}
 
-	template<typename... Args>
-	static std::shared_ptr<Texture> CreateTexture(const std::string &name, const Args& ...args) {
+	static std::shared_ptr<Texture> CreateTexture(const std::string &name) {
 		auto self = Scene::getSingletonPtr();
 
 		if (self->_textures.find(name) != self->_textures.end())
 			throw std::logic_error("Cannot create a texture named " + name + " because an other with the same name already exist.");
 
-		auto tex = std::make_shared<Texture>(args...);
+		auto tex = std::make_shared<Texture>();
 		self->_textures[name] = tex;
 		return tex;
 	}
@@ -86,11 +88,11 @@ class Scene : public Singleton<Scene> {
 
 	static void RemoveMaterial(const std::string &name);
 	static std::shared_ptr<Material> FindMaterial(const std::string &name);
-	static void LoadMaterialFile(const std::string &filename);
+	inline static void LoadMaterialFile(const std::string &filename) { MaterialsFileLoader::LoadFile(filename); }
 
 	static void RemoveTexture(const std::string &name);
 	static std::shared_ptr<Texture> FindTexture(const std::string &name);
-	static void LoadTextureFile(const std::string &filename);
+	inline static void LoadTextureFile(const std::string &filename) { TexturesFileLoader::LoadFile(filename); }
 
 	static void RemoveLight(const unsigned int &ID);
 	static std::shared_ptr<Light> FindLight(const unsigned int &ID);
