@@ -83,8 +83,6 @@ void MyGlWindow::drawingLoop() {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		//glActiveTexture(GL_TEXTURE0);
-
 		int display_w, display_h;
 		glfwGetFramebufferSize(this->_window, &display_w, &display_h);
 		if (display_w != this->width || display_h != this->height) {

@@ -16,6 +16,8 @@
 		return a.get() == texture.get(); \
 	});
 
+#define MAX_TEXTURES GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS
+
 class Light;
 
 struct ShaderVariables {

@@ -42,6 +42,7 @@ class Texture {
 	GLuint _tex_2d;
 
  public:
+	//ImageChannelEnum ImageChannel;
 	MinFilterEnum MinFilter;
 	MagFilterEnum MagFilter;
 	WrapEnum SWrap;

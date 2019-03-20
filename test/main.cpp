@@ -114,7 +114,7 @@ int main() {
 
 	Scene::LoadTextureFile(TEXTURES_DIR + "textures.json");
 	Scene::LoadMaterialFile(MATERIALS_DIR + "materials.json");
-	//Scene::LoadMaterialFile(MATERIALS_DIR + "simple.json");
+	Scene::LoadMaterialFile(MATERIALS_DIR + "simple.json");
 	{
 		auto plane = Scene::CreateObject<Plane>();
 		plane->material = Scene::FindMaterial("plane");
@@ -123,10 +123,11 @@ int main() {
 		plane->SetCustomUniform("minDist", 0.1f);
 		plane->SetCustomUniform("maxDist", 10.0f);
 
-		/*auto cube = Scene::CreateObject<Cube>();
-		cube->Translate(glm::vec3(0, 1.5, 0));
-		cube->material = Scene::FindMaterial("brick");*/
-		auto world = Scene::CreateObject<Sphere>();
+		auto cube = Scene::CreateObject<Cube>();
+		cube->Translate(glm::vec3(3, 1.5, 0));
+		cube->material = Scene::FindMaterial("brick");
+
+		auto world = Scene::CreateObject<Sphere>(1, 48, 32);
 		world->Translate(glm::vec3(0, 2, 0));
 		world->Rotate(180, glm::vec3(1, 0, 0));
 		world->material = Scene::FindMaterial("earth");
@@ -134,6 +135,7 @@ int main() {
 		window->RegisterFrameFunction([world](DrawInformation &) {
 			world->Rotate(1, glm::vec3(0, 1, 0));
 		});
+		window->RegisterFrameFunction(DrawFrameRate);
 
 		/*auto spot = Scene::CreateLight<SpotLight>(glm::vec3(0, 0, 0), 2);
 		auto spot2 = Scene::CreateLight<SpotLight>(*spot);

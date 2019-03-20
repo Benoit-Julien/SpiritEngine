@@ -47,7 +47,7 @@ void TexturesFileLoader::FileTreatment(const rapidjson::Document &document, cons
 		ATTRIBUTE_CHECKER(MagFilter, "magFilter")
 		ATTRIBUTE_CHECKER(SWrap, "sWrap")
 		ATTRIBUTE_CHECKER(TWrap, "tWrap")
-		ATTRIBUTE_CHECKER(ColorFormat, "colorFormal")
+		ATTRIBUTE_CHECKER(ColorFormat, "colorFormat")
 		text->initFromFile(imagePath);
 	}
 }

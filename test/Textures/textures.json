@@ -7,6 +7,11 @@
     {
       "name": "brick",
       "image": "images/brick.jpg"
+    },
+    {
+      "name": "moss",
+      "image": "images/moss.png",
+      "colorFormat": "RGBA"
     }
   ]
 }

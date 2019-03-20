@@ -39,7 +39,7 @@
       "name": "brick",
       "vertex": "../Shaders/textured.vert",
       "fragment": "../Shaders/textured.frag",
-      "texture": "brick",
+      "texture": ["brick", "moss"],
       "diffuse": [0.5, 0.5, 0.5],
       "ambient": [0.5, 0.5, 0.5],
       "specular": [0.1, 0.1, 0.1],

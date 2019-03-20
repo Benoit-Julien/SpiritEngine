@@ -29,10 +29,12 @@ void Material::use() {
 	if (!this->textures.empty()) {
 		int index = 0;
 		for (auto &text : this->textures) {
+			glActiveTexture(GL_TEXTURE0+index);
 			text->use();
-			this->shader->setUniform("material.tex" + std::to_string(index + 1), index);
+			this->shader->setUniform("material.textures[" + std::to_string(index) + "]", index);
 			index++;
 		}
+		this->shader->setUniform("material.textNumber", (unsigned int)this->textures.size());
 	}
 }
 
@@ -44,6 +46,9 @@ void Material::disable() {
 }
 
 void Material::AddTexture(std::shared_ptr<Texture> texture) {
+	if (this->textures.size() == MAX_TEXTURES)
+		return;
+
 	FIND_TEXTURE
 	if (t != this->textures.end())
 #ifdef _DEBUG

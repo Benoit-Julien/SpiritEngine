@@ -1,5 +1,6 @@
 #version 410
 #define MAX_LIGHTS 32
+#define MAX_TEXTURES 16
 
 struct Light {
     vec3 position;
@@ -30,7 +31,8 @@ struct Material {
     vec3 specular;
     float shiness;
 
-    sampler2D tex1;
+    uint textNumber;
+    sampler2D textures[MAX_TEXTURES];
 };
 
 in vec3 fNormal;
@@ -113,8 +115,17 @@ vec4 CalcSpotColor(SpotLight light, vec4 texColor) {
     return (vec4(diffuse, 1.0) * texColor) + vec4(specular, 1.0);
 }
 
+vec4 CalcTextureColor() {
+    vec4 result = texture(material.textures[0], texCoord);
+    for (int i = 1; i < material.textNumber; i++) {
+        vec4 texColor = texture(material.textures[i], texCoord);
+        result = mix(texColor, result, texColor.a);
+    }
+    return result;
+}
+
 void main() {
-    vec4 texColor = texture(material.tex1, texCoord);
+    vec4 texColor = CalcTextureColor();
     vec4 result = vec4(material.ambient, 1.0) * texColor;
 
     for (int i = 0; i < lightNumber; i++)
