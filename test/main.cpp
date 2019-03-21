@@ -1,13 +1,8 @@
 #include <imgui/imgui.h>
 
-#define STB_IMAGE_IMPLEMENTATION
-
-#include <stb/stb_image.h>
-
 #include <MyGlWindow.hpp>
 #include <Scene.hpp>
 
-#include <Objects/Primitives/CheckeredFloor.hpp>
 #include <Objects/Primitives/Cube.hpp>
 #include <Objects/Primitives/Sphere.hpp>
 #include <Objects/Primitives/Plane.hpp>
@@ -62,30 +57,8 @@ static void DrawHelp() {
 
 		ImGui::End();
 	}
-}
-
-int main() {
-	auto window = std::make_shared<MyGlWindow>(width, height);
-	Crane crane(window);
-
-	{
-		Scene::CreateObject<CheckeredFloor>(50, 16);
-
-		auto cube = Scene::CreateObject<Cube>();
-		cube->Translate(glm::vec3(3, 1, 5));
-
-		auto cube2 = Scene::CreateObject<Cube>();
-		cube2->Translate(glm::vec3(-4, 1, 4));
-
-		auto cube3 = Scene::CreateObject<Cube>();
-		cube3->Translate(glm::vec3(-6, 1, 8));
-	}
-
-	window->RegisterFrameFunction(&DrawHelp);
-	window->Run();
-	return 0;
 }*/
-//#include <iostream>
+
 //#define GLM_ENABLE_EXPERIMENTAL
 //#include <glm/gtx/string_cast.hpp>
 
@@ -112,11 +85,12 @@ static void DrawFrameRate(DrawInformation &info) {
 int main() {
 	auto window = std::make_shared<MyGlWindow>(width, height);
 
+	Scene::LoadShaderFile(SHADERS_DIR + "shaders.json");
 	Scene::LoadTextureFile(TEXTURES_DIR + "textures.json");
 	Scene::LoadMaterialFile(MATERIALS_DIR + "materials.json");
-	Scene::LoadMaterialFile(MATERIALS_DIR + "simple.json");
+	//Scene::LoadMaterialFile(MATERIALS_DIR + "simple.json");
 	{
-		auto plane = Scene::CreateObject<Plane>();
+		/*auto plane = Scene::CreateObject<Plane>();
 		plane->material = Scene::FindMaterial("plane");
 		plane->Scale(glm::vec3(1000, 1, 1000));
 		plane->SetCustomUniform("fogColor", glm::vec3(0.5, 0.5, 0.5));
@@ -132,9 +106,20 @@ int main() {
 		world->Rotate(180, glm::vec3(1, 0, 0));
 		world->material = Scene::FindMaterial("earth");
 
-		window->RegisterFrameFunction([world](DrawInformation &) {
-			world->Rotate(1, glm::vec3(0, 1, 0));
+
+		window->RegisterPhysicalUpdateFunction([world]() {
+			world->Rotate(0.0001, glm::vec3(0, 1, 0));
 		});
+*/
+		/*auto mountain = Scene::CreateMesh("mountain");
+		mountain->SetShader("textured.vert", "textured.frag");
+		mountain->LoadMesh(MODELS_DIR + "mountain/mount.blend1.obj");*/
+
+		auto sponza = Scene::CreateMesh("sponza");
+		sponza->SetShader("textured.vert", "textured.frag");
+		sponza->LoadMesh(MODELS_DIR + "Sponza/sponza.obj");
+		sponza->Scale(glm::vec3(0.1, 0.1, 0.1));
+
 		window->RegisterFrameFunction(DrawFrameRate);
 
 		/*auto spot = Scene::CreateLight<SpotLight>(glm::vec3(0, 0, 0), 2);
@@ -143,16 +128,17 @@ int main() {
 		spot2->Translate(glm::vec3(-4, 4, 0));*/
 
 		auto light = Scene::CreateLight<Light>();
-		light->Translate(glm::vec3(4, 4, 0));
+		light->Translate(glm::vec3(0, 6, 0));
+		light->SetIntensity(4);
 
-		auto light2 = Scene::CreateLight<Light>();
+		/*auto light2 = Scene::CreateLight<Light>();
 		light2->Translate(glm::vec3(-4, 4, 0));
 
 		auto light3 = Scene::CreateLight<Light>();
 		light3->Translate(glm::vec3(0, 4, 4));
 
 		auto light4 = Scene::CreateLight<Light>();
-		light4->Translate(glm::vec3(0, 4, -4));
+		light4->Translate(glm::vec3(0, 4, -4));*/
 
 /*
 		auto dragon = Scene::CreateObject<Mesh>(MODELS_DIR + "dragon.obj");
@@ -163,112 +149,13 @@ int main() {
 		dragon->SetCullFaceOption(GL_BACK);
 		dragon->SetCustomUniform("fogColor", glm::vec3(0.5, 0.5, 0.5));
 		dragon->SetCustomUniform("minDist", 0.1f);
-		dragon->SetCustomUniform("maxDist", 10.0f);*/
-/*
-		auto teapot = Scene::CreateObject<Mesh>(MODELS_DIR + "teapot.3ds");
-		teapot->material = Scene::FindMaterial("cartoon");
-		teapot->Translate(glm::vec3(0, 1, 0));
-		teapot->Rotate(-90, glm::vec3(1, 0, 0));
-		teapot->Scale(glm::vec3(0.05, 0.05, 0.05));
-		teapot->EnableCulling();
-		teapot->SetCullFaceOption(GL_BACK);
-		teapot->SetEnable(false);*/
+		dragon->SetCustomUniform("maxDist", 10.0f);
 
-		/*auto silhouette = Scene::CreateObject<Mesh>(*dragon);
+		auto silhouette = Scene::CreateObject<Mesh>(*dragon);
 		silhouette->material = Scene::FindMaterial("silhouette");
 		silhouette->SetCullFaceOption(GL_FRONT);
 		silhouette->SetCustomUniform("offset", 0.01f);*/
-		//Scene::Destroy(silhouette, 2);
-
-		//window->RegisterFrameFunction(&DrawFrameRate);
-
-		/*auto cow = Scene::CreateObject<Mesh>(MODELS_DIR + "cow.obj");
-		cow->material = Scene::FindMaterial("cartoon");
-		cow->Translate(glm::vec3(1, 1, 0));
-		cow->Rotate(90, glm::vec3(0, 1, 0));
-		cow->Scale(glm::vec3(0.25, 0.25, 0.25));
-		cow->EnableCulling();
-		cow->SetCullFaceOption(GL_BACK);
-
-		auto silhouette2 = Scene::CreateObject<Mesh>(*cow);
-		silhouette2->material = Scene::FindMaterial("silhouette");
-		silhouette2->SetCullFaceOption(GL_FRONT);
-		silhouette2->SetCustomUniform("offset", 0.05f);*/
-
-
-
-		//}
-		/*
-		auto model2 = Scene::CreateObject<Mesh>(MODELS_DIR + "buddha.obj");
-		model2->material = Scene::FindMaterial("gold");
-		model2->Translate(glm::vec3(0, 1, 3));
-		model2->Scale(glm::vec3(3, 3, 3));
-		model2->Rotate(-90, glm::vec3(0, 1, 0));
-
-		auto model3 = Scene::CreateObject<Mesh>(MODELS_DIR + "bunny.obj");
-		model3->material = Scene::FindMaterial("ruby");
-		model3->Translate(glm::vec3(0, 0, -3));
-		model3->Rotate(90, glm::vec3(0, 1, 0));*/
 	}
-/*
-	glm::vec3 colors[] = {
-					glm::vec3(0.0f, 0.8f, 0.8f),
-					glm::vec3(0.0f, 0.0f, 0.8f),
-					glm::vec3(0.8f, 0.0f, 0.0f),
-					glm::vec3(0.0f, 0.8f, 0.0f),
-					glm::vec3(0.8f, 0.8f, 0.8f)
-	};
-
-	float height = 1;
-	float intensity = 1;
-	float radius = 1;
-	std::vector<std::shared_ptr<Light>> lights;
-
-	for (auto i = 0; i < 5; i++) {
-		auto light = Scene::CreateLight<Light>(intensity);
-		auto angle = glm::radians(72.0f * i);
-		light->Diffuse = light->Ambient = light->Specular = colors[i];
-		light->Translate(glm::vec3(radius * glm::cos(angle), height, radius * glm::sin(angle)));
-		lights.push_back(light);
-	}
-
-	auto func = [&](const DrawInformation &) {
-		if (ImGui::Begin("Light")) {
-			ImGui::SliderFloat("Lights height", &height, 0, 10);
-			ImGui::SliderFloat("Light Intensity", &intensity, 0, 20);
-			ImGui::SliderFloat("Light Radius", &radius, 0, 5);
-		}
-		ImGui::End();
-
-		int i = 0;
-		for (auto &light : lights) {
-			light->SetIntensity(intensity);
-
-			auto angle = glm::radians(72.0f * i++);
-			light->Translate(-light->getPosition());
-			light->Translate(glm::vec3(radius * glm::cos(angle), height, radius * glm::sin(angle)));
-		}
-	};
- 	window->RegisterFrameFunction(func);
-*/
-
-	/*glm::vec3 color = light->Diffuse;
-	glm::vec3 pos = light->getPosition();
-	float intensity = light->GetIntensity();
-	if (ImGui::Begin("Light")) {
-		ImGui::SliderFloat3("Light Position", glm::value_ptr(pos), -10, 10);
-		ImGui::ColorEdit3("Light Color", glm::value_ptr(color));
-		ImGui::SliderFloat("Light Intensity", &intensity, 0, 20);
-		ImGui::End();
-	}
-	light->Translate(-light->getPosition());
-	light->Translate(pos);
-
-	light->Diffuse = color;
-	light->Ambient = color;
-	light->Specular = color;
-	light->SetIntensity(intensity);
-};*/
 
 	window->Run();
 	return 0;

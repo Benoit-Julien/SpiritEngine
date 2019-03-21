@@ -9,6 +9,8 @@
 #include <rapidjson/istreamwrapper.h>
 #include <rapidjson/error/en.h>
 
+#include "utils.hpp"
+
 class AFileLoader {
  protected:
 	explicit AFileLoader() = default;
@@ -23,11 +25,6 @@ class AFileLoader {
 		if (!ifs)
 			throw std::logic_error("Cannot read materials file : " + filename);
 
-		std::string fileDirectory;
-		std::size_t slashPos = filename.rfind('/');
-		if (slashPos != std::string::npos)
-			fileDirectory = filename.substr(0, slashPos) + "/";
-
 		rapidjson::IStreamWrapper isw(ifs);
 		rapidjson::Document document;
 		document.ParseStream(isw);
@@ -39,7 +36,7 @@ class AFileLoader {
 		}
 
 		assert(document.IsObject());
-		this->FileTreatment(document, fileDirectory);
+		this->FileTreatment(document, GetFilePath(CleanFilePath(filename)));
 	}
 };
 

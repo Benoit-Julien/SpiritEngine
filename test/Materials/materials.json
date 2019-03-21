@@ -2,8 +2,8 @@
   "materials": [
     {
       "name": "plane",
-      "vertex": "../Shaders/simple.vert",
-      "fragment": "../Shaders/BlinnPhongShading.frag",
+      "vertex": "simple.vert",
+      "fragment": "BlinnPhongShading.frag",
       "diffuse": [0.5, 0.5, 0.5],
       "ambient": [0.05, 0.05, 0.05],
       "specular": [0.1, 0.1, 0.1],
@@ -11,8 +11,8 @@
     },
     {
       "name": "dragon",
-      "vertex": "../Shaders/simple.vert",
-      "fragment": "../Shaders/BlinnPhongShading.frag",
+      "vertex": "simple.vert",
+      "fragment": "BlinnPhongShading.frag",
       "diffuse": [0.9, 0.9, 0.9],
       "ambient": [0.1, 0.1, 0.1],
       "specular": [0.4, 0.4, 0.4],
@@ -20,8 +20,8 @@
     },
     {
       "name": "cartoon",
-      "vertex": "../Shaders/simple.vert",
-      "fragment": "../Shaders/CartoonShading.frag",
+      "vertex": "simple.vert",
+      "fragment": "CartoonShading.frag",
       "ambiant": [0.24725, 0.1995, 0.0745],
       "diffuse": [0.75164, 0.60648, 0.22648],
       "specular": [0.628281, 0.555802, 0.366065],
@@ -29,16 +29,16 @@
     },
     {
       "name": "silhouette",
-      "vertex": "../Shaders/silhouette.vert",
-      "fragment": "../Shaders/silhouette.frag",
+      "vertex": "silhouette.vert",
+      "fragment": "silhouette.frag",
       "diffuse": [0, 0, 0],
       "ambient": [0, 0, 0],
       "specular": [0, 0, 0]
     },
     {
       "name": "brick",
-      "vertex": "../Shaders/textured.vert",
-      "fragment": "../Shaders/textured.frag",
+      "vertex": "textured.vert",
+      "fragment": "textured.frag",
       "texture": ["brick", "moss"],
       "diffuse": [0.5, 0.5, 0.5],
       "ambient": [0.5, 0.5, 0.5],
@@ -47,13 +47,18 @@
     },
     {
       "name": "earth",
-      "vertex": "../Shaders/textured.vert",
-      "fragment": "../Shaders/textured.frag",
+      "vertex": "textured.vert",
+      "fragment": "textured.frag",
       "texture": "earth",
       "diffuse": [0.5, 0.5, 0.5],
       "ambient": [0.5, 0.5, 0.5],
       "specular": [0.1, 0.1, 0.1],
       "shiness": 5
+    },
+    {
+      "name": "TexturedMesh",
+      "vertex": "textured.vert",
+      "fragment": "textured.frag"
     }
   ]
 }

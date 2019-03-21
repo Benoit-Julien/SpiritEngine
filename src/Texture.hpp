@@ -40,6 +40,7 @@ class Texture {
 	int _channel;
 
 	GLuint _tex_2d;
+	bool _initialized;
 
  public:
 	//ImageChannelEnum ImageChannel;

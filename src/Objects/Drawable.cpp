@@ -4,8 +4,6 @@
 
 Drawable::Drawable(const ObjectType &type) : Movable(type) {
 	this->_enabled = true;
-	this->_cullface = GL_BACK;
-	this->_enabledCulling = false;
 }
 
 Drawable::~Drawable() {}
@@ -13,14 +11,10 @@ Drawable::~Drawable() {}
 Drawable::Drawable(const Drawable &drawable)
 				: Movable(drawable),
 					_enabled(drawable._enabled),
-					_cullface(drawable._cullface),
-					_enabledCulling(drawable._enabledCulling),
 					material(drawable.material) {}
 
 Drawable &Drawable::operator=(const Drawable &drawable) {
 	this->_enabled = drawable._enabled;
-	this->_cullface = drawable._cullface;
-	this->_enabledCulling = drawable._enabledCulling;
 	this->material = drawable.material;
 	return *this;
 }

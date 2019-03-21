@@ -37,10 +37,6 @@ void TexturesFileLoader::FileTreatment(const rapidjson::Document &document, cons
 		assert(texture.HasMember("name") && texture["name"].IsString());
 		assert(texture.HasMember("image") && texture["image"].IsString());
 
-		std::string imagePath = texture["image"].GetString();
-		if (imagePath[0] != '/')
-			imagePath = fileDirectory + imagePath;
-
 		auto text = Scene::CreateTexture(texture["name"].GetString());
 
 		ATTRIBUTE_CHECKER(MinFilter, "minFilter")
@@ -48,6 +44,6 @@ void TexturesFileLoader::FileTreatment(const rapidjson::Document &document, cons
 		ATTRIBUTE_CHECKER(SWrap, "sWrap")
 		ATTRIBUTE_CHECKER(TWrap, "tWrap")
 		ATTRIBUTE_CHECKER(ColorFormat, "colorFormat")
-		text->initFromFile(imagePath);
+		text->initFromFile(CleanFilePath(texture["image"].GetString(), fileDirectory));
 	}
 }

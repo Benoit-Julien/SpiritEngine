@@ -4,13 +4,11 @@
 #include <unordered_map>
 
 #include "Movable.hpp"
+#include "CullFace.hpp"
 #include "Material.hpp"
 
-class Drawable : public Movable {
+class Drawable : public Movable, public CullFace {
 	bool _enabled;
-	bool _enabledCulling;
-	GLenum _cullface;
-
 	std::unordered_map<std::string, ShaderProgram::var_t> _customUniforms;
 
  public:
@@ -34,13 +32,6 @@ class Drawable : public Movable {
 
 	inline void SetEnable(const bool &enable) { this->_enabled = enable; }
 	inline const bool &Enabled() const { return this->_enabled; }
-
-	inline void SetCullFaceOption(const GLenum &cullface) { this->_cullface = cullface; }
-	inline const GLenum &GetCullFaceOption() const { return this->_cullface; }
-
-	inline void EnableCulling() { this->_enabledCulling = true; }
-	inline void DisableCulling() { this->_enabledCulling = false; }
-	inline const bool &Culling() const { return this->_enabledCulling; }
 
  protected:
 	void updateShaderUniform(const ShaderVariables &variables);

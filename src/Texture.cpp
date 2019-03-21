@@ -10,6 +10,8 @@ Texture::Texture() {
 	this->SWrap = WrapEnum::MIRRORED_REPEAT;
 	this->TWrap = WrapEnum::MIRRORED_REPEAT;
 	this->ColorFormat = ColorFormatEnum::RGB;
+
+	this->_initialized = false;
 }
 
 Texture::~Texture() {
@@ -26,12 +28,17 @@ void Texture::disable() {
 }
 
 void Texture::initFromFile(const std::string &filename) {
+	if (this->_initialized)
+		return;
+
 	this->_filename = filename;
 	this->setup();
 }
 
 void Texture::setup() {
 	this->_image = stbi_load(this->_filename.c_str(), &this->_width, &this->_height, &this->_channel, 0);
+	if (!this->_image)
+		throw std::logic_error("Fail create texture based on " + this->_filename);
 
 	glGenTextures(1, &this->_tex_2d);
 	glBindTexture(GL_TEXTURE_2D, this->_tex_2d);
@@ -49,4 +56,6 @@ void Texture::setup() {
 	glGenerateMipmap(GL_TEXTURE_2D);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+	this->_initialized = true;
 }

@@ -20,7 +20,7 @@ class ShaderProgram {
 	std::shared_ptr<FragmentShader> _fragmentShader;
 
 	// Has this shader program been initialised?
-	bool initialised;
+	bool _initialised;
 
 	std::unordered_map<std::string, GLint> uniforms;
 
@@ -60,10 +60,12 @@ class ShaderProgram {
 	// Method to initialise a shader program from shaders provided as strings
 	void initFromStrings(const std::string &vertexShaderSource, const std::string &fragmentShaderSource);
 
+	void initFromShader(std::shared_ptr<VertexShader> vertexShader, std::shared_ptr<FragmentShader> fragmentShader);
+
 	// Method to enable the shader program - we'll suggest this for inlining
 	void use() {
 		// Santity check that we're initialised and ready to go...
-		if (initialised) {
+		if (_initialised) {
 			glUseProgram(programId);
 		}
 		else {

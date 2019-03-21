@@ -23,6 +23,7 @@ class MyGlWindow {
 	std::shared_ptr<Viewer> _viewer;
 
 	std::unordered_map<unsigned int, std::function<void (DrawInformation &)>> _frameFunction;
+	std::unordered_map<unsigned int, std::function<void ()>> _physicalUpdateFunction;
 
 	bool _windowOpen;
 
@@ -42,8 +43,12 @@ class MyGlWindow {
 	~MyGlWindow();
 
 	void Run();
+
 	unsigned int RegisterFrameFunction(const std::function<void (DrawInformation &)> &func);
 	void UnRegisterFrameFunction(const unsigned int &ID);
+
+	unsigned int RegisterPhysicalUpdateFunction(const std::function<void ()> &func);
+	void UnRegisterPhysicalUpdateFunction(const unsigned int &ID);
 
  private:
 	void physicalLoop();

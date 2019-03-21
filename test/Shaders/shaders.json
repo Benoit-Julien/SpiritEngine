@@ -1,0 +1,16 @@
+{
+  "shaders": {
+    "vertexes": [
+      "silhouette.vert",
+      "simple.vert",
+      "textured.vert"
+    ],
+    "fragments": [
+      "BlinnPhongShading.frag",
+      "CartoonShading.frag",
+      "PhongShading.frag",
+      "silhouette.frag",
+      "textured.frag"
+    ]
+  }
+}

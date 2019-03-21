@@ -61,6 +61,21 @@ void MyGlWindow::UnRegisterFrameFunction(const unsigned int &ID) {
 	IDGenerator::getSingleton().removeUniqueId(ID);
 }
 
+unsigned int MyGlWindow::RegisterPhysicalUpdateFunction(const std::function<void()> &func) {
+	auto id = IDGenerator::getSingleton().generateUniqueId();
+	this->_physicalUpdateFunction[id] = func;
+	return id;
+}
+
+void MyGlWindow::UnRegisterPhysicalUpdateFunction(const unsigned int &ID) {
+	auto elem = this->_physicalUpdateFunction.find(ID);
+	if (elem == this->_physicalUpdateFunction.end())
+		throw std::logic_error("Cannot remove function of id " + std::to_string(ID) + " because it's not registered.");
+
+	this->_physicalUpdateFunction.erase(elem);
+	IDGenerator::getSingleton().removeUniqueId(ID);
+}
+
 void MyGlWindow::Run() {
 	this->_windowOpen = true;
 
@@ -113,6 +128,8 @@ void MyGlWindow::drawingLoop() {
 void MyGlWindow::physicalLoop() {
 	while (this->_windowOpen) {
 		Scene::PhysicalUpdate();
+		for (auto &physicFunc : this->_physicalUpdateFunction)
+			physicFunc.second();
 	}
 }
 

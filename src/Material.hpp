@@ -47,7 +47,8 @@ class Material {
 
  public:
 	Material();
-	Material(const std::string &vertexShaderFilename, const std::string &fragmentShaderFilename);
+	Material(const std::string &vertexShader, const std::string &fragmentShader);
+	Material(std::shared_ptr<ShaderProgram> shader);
 	~Material();
 
 	void use();

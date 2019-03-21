@@ -10,12 +10,12 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "ShaderProgram.hpp"
-#include "ShaderLoader.hpp"
+#include "Scene.hpp"
 
 ShaderProgram::ShaderProgram() {
 	// We start in a non-initialised state - calling initFromFiles() or initFromStrings() will
 	// initialise us.
-	initialised = false;
+	_initialised = false;
 
 	// Generate a unique Id / handle for the shader program
 	// Note: We MUST have a valid rendering context before generating the programId or we'll segfault!
@@ -30,18 +30,34 @@ ShaderProgram::~ShaderProgram() {
 }
 
 void ShaderProgram::initFromFiles(const std::string &vertexShaderFilename, const std::string &fragmentShaderFilename) {
-	this->_vertexShader = ShaderLoader::LoadShader<VertexShader>(vertexShaderFilename);
-	this->_fragmentShader = ShaderLoader::LoadShader<FragmentShader>(fragmentShaderFilename);
+	if (this->_initialised)
+		return;
+
+	this->_vertexShader = Scene::LoadShader<VertexShader>(vertexShaderFilename);
+	this->_fragmentShader = Scene::LoadShader<FragmentShader>(fragmentShaderFilename);
 
 	this->initialise();
 }
 
 void ShaderProgram::initFromStrings(const std::string &vertexShaderSource, const std::string &fragmentShaderSource) {
+	if (this->_initialised)
+		return;
+
 	this->_vertexShader = std::make_shared<VertexShader>();
 	this->_fragmentShader = std::make_shared<FragmentShader>();
 
 	this->_vertexShader->initFromString(vertexShaderSource);
 	this->_fragmentShader->initFromString(fragmentShaderSource);
+
+	this->initialise();
+}
+
+void ShaderProgram::initFromShader(std::shared_ptr<VertexShader> vertexShader, std::shared_ptr<FragmentShader> fragmentShader) {
+	if (this->_initialised)
+		return;
+
+	this->_vertexShader = vertexShader;
+	this->_fragmentShader = fragmentShader;
 
 	this->initialise();
 }
@@ -221,7 +237,7 @@ void ShaderProgram::initialise() {
 #endif
 
 	// Finally, the shader program is initialised
-	initialised = true;
+	_initialised = true;
 }
 
 std::string ShaderProgram::getInfoLog(const int &id) {

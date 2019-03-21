@@ -11,10 +11,6 @@ void MaterialsFileLoader::FileTreatment(const rapidjson::Document &document, con
 
 		std::string vertexShader = material["vertex"].GetString();
 		std::string fragmentShader = material["fragment"].GetString();
-		if (vertexShader[0] != '/')
-			vertexShader = fileDirectory + vertexShader;
-		if (fragmentShader[0] != '/')
-			fragmentShader = fileDirectory + fragmentShader;
 
 		auto mat = Scene::CreateMaterial(material["name"].GetString(), vertexShader, fragmentShader);
 

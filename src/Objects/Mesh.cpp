@@ -5,12 +5,12 @@
 
 #include "Mesh.hpp"
 #include "Objects/Lights/Light.hpp"
+#include "utils.hpp"
+#include "Scene.hpp"
 
-Mesh::Mesh(const std::string &filePath)
+Mesh::Mesh()
 				: Drawable(ObjectType::Model3D),
-					_filePath(filePath),
 					_drawMode(DrawMode::Shape) {
-	this->setup();
 }
 
 Mesh::~Mesh() {}
@@ -33,34 +33,37 @@ Mesh &Mesh::operator=(const Mesh &model) {
 	return *this;
 }
 
-void Mesh::Draw(const ShaderVariables &variables) {
-	if (!this->Enabled())
-		return;
-
-	if (this->Culling()) {
-		glEnable(GL_CULL_FACE);
-		glCullFace(this->GetCullFaceOption());
-	}
-
-	if (this->material != nullptr) {
-		this->material->use();
-		this->updateShaderUniform(variables);
-	}
-	for (auto &obj : this->_childObjects) {
-		if (this->material != nullptr) obj->useOwnMaterial = false;
-		else obj->useOwnMaterial = true;
-
-		obj->Draw(variables);
-	}
-
-	if (this->material != nullptr) this->material->disable();
-	if (this->Culling()) glDisable(GL_CULL_FACE);
-}
-
 void Mesh::setDrawMode(const DrawMode &mode) {
 	_drawMode = mode;
 	for (auto &obj : this->_childObjects)
 		obj->setDrawMode(mode);
+}
+
+void Mesh::SetCullFaceOption(const GLenum &cullface) {
+	for (auto &obj : this->_childObjects) obj->SetCullFaceOption(cullface);
+	CullFace::SetCullFaceOption(cullface);
+}
+
+void Mesh::EnableCulling() {
+	for (auto &obj : this->_childObjects) obj->EnableCulling();
+	CullFace::EnableCulling();
+}
+
+void Mesh::DisableCulling() {
+	for (auto &obj : this->_childObjects) obj->DisableCulling();
+	CullFace::DisableCulling();
+}
+
+void Mesh::SetShader(const std::string &vertexShader, const std::string &fragmentShader) {
+	this->_shader = std::make_shared<ShaderProgram>();
+	auto vertex = Scene::FindShader<VertexShader>(vertexShader);
+	auto fragment = Scene::FindShader<FragmentShader>(fragmentShader);
+	this->_shader->initFromShader(vertex, fragment);
+}
+
+void Mesh::LoadMesh(const std::string &filePath) {
+	this->_filePath = CleanFilePath(filePath);
+	this->setup();
 }
 
 void Mesh::setup() {
@@ -74,13 +77,48 @@ void Mesh::setup() {
 	if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
 		throw std::logic_error("ERROR::ASSIMP:: " + std::string(importer.GetErrorString()));
 
+	auto fileDirectory = GetFilePath(this->_filePath);
+	auto filename = GetFileName(this->_filePath);
+	for (unsigned int i = 0; i < scene->mNumMaterials; i++) {
+		const auto &material = scene->mMaterials[i];
+		auto mat = std::make_shared<Material>(this->_shader);
+
+		material->Get(AI_MATKEY_SHININESS, mat->shiness);
+		material->Get(AI_MATKEY_COLOR_DIFFUSE, mat->Diffuse);
+		material->Get(AI_MATKEY_COLOR_AMBIENT, mat->Ambient);
+		material->Get(AI_MATKEY_COLOR_SPECULAR, mat->Specular);
+
+		if (glm::length(mat->Diffuse) == 0)
+			mat->Diffuse = glm::vec3(0.8, 0.8, 0.8);
+		if (glm::length(mat->Ambient) == 0)
+			mat->Ambient = glm::vec3(0.3, 0.3, 0.3);
+		if (glm::length(mat->Specular) == 0)
+			mat->Specular = glm::vec3(0.3, 0.3, 0.3);
+
+		if (mat->shiness == 0)
+			mat->shiness = 10;
+
+		if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
+			aiString path;
+			if (material->GetTexture(aiTextureType_DIFFUSE, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS) {
+				auto filePath = CleanFilePath(path.data, fileDirectory);
+				auto name = GetFileName(path.data);
+
+				auto tex = Scene::CreateTexture(filename + "/" + name);
+				tex->initFromFile(filePath);
+				mat->AddTexture(tex);
+			}
+		}
+		this->_materials.push_back(mat);
+	}
+
 	for (int index = 0; index < scene->mNumMeshes; index++) {
 		const auto mesh = scene->mMeshes[index];
 
 		if (!mesh->HasPositions() || !mesh->HasFaces())
 			continue;
 
-		std::shared_ptr<TriangleObject> obj = std::make_shared<TriangleObject>();
+		auto obj = Scene::CreateObject<TriangleObject>();
 
 		if (mesh->HasPositions()) obj->vertices = std::vector<glm::vec3>(mesh->mNumVertices);
 		if (mesh->HasNormals()) obj->normals = std::vector<glm::vec3>(mesh->mNumVertices);
@@ -110,29 +148,10 @@ void Mesh::setup() {
 			}
 		}
 
-		if (mesh->mMaterialIndex >= 0) {
-			const auto &material = scene->mMaterials[mesh->mMaterialIndex];
-			auto mat = std::make_shared<Material>();
+		if (mesh->mMaterialIndex >= 0)
+			obj->material = this->_materials[mesh->mMaterialIndex];
 
-			material->Get(AI_MATKEY_SHININESS, mat->shiness);
-			material->Get(AI_MATKEY_COLOR_DIFFUSE, mat->Diffuse);
-			material->Get(AI_MATKEY_COLOR_AMBIENT, mat->Ambient);
-			material->Get(AI_MATKEY_COLOR_SPECULAR, mat->Specular);
-
-			if (glm::length(mat->Diffuse) == 0)
-				mat->Diffuse = glm::vec3(0.8, 0.8, 0.8);
-			if (glm::length(mat->Ambient) == 0)
-				mat->Ambient = glm::vec3(0.3, 0.3, 0.3);
-			if (glm::length(mat->Specular) == 0)
-				mat->Specular = glm::vec3(0.3, 0.3, 0.3);
-
-			if (mat->shiness == 0)
-				mat->shiness = 10;
-
-			obj->material = mat;
-			this->_materials.push_back(mat);
-		}
-
+		obj->SetParent(Scene::FindObjectByID(this->getObjectID()));
 		obj->setup();
 		this->_childObjects.push_back(obj);
 	}

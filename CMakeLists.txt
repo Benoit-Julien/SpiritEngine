@@ -57,6 +57,7 @@ set(SOURCES
         src/Texture.cpp
         src/FileLoader/MaterialsFileLoader.cpp
         src/FileLoader/TexturesFileLoader.cpp
+        src/FileLoader/ShadersFileLoader.cpp
         src/Shader/ShaderProgram.cpp
         src/Shader/AShader.cpp
         src/Shader/VertexShader.cpp
@@ -64,6 +65,7 @@ set(SOURCES
         src/Objects/Object.cpp
         src/Objects/Movable.cpp
         src/Objects/Drawable.cpp
+        src/Objects/CullFace.cpp
         src/Objects/Lights/Light.cpp
         src/Objects/Lights/SpotLight.cpp
         src/Objects/TriangleObject.cpp
@@ -72,10 +74,10 @@ set(SOURCES
         src/Objects/Primitives/Plane.cpp
         src/Objects/Primitives/Sphere.cpp
         )
-        #src/Objects/LineSegment.cpp
-        #src/Objects/Primitives/WireCube.cpp
-        #src/Objects/Primitives/CheckeredFloor.cpp
-        #)
+#src/Objects/LineSegment.cpp
+#src/Objects/Primitives/WireCube.cpp
+#src/Objects/Primitives/CheckeredFloor.cpp
+#)
 
 add_library(SpiritEngine SHARED ${SOURCES})
 target_link_libraries(SpiritEngine ${LIBRARIES})
@@ -84,8 +86,13 @@ add_dependencies(SpiritEngine glad glfw glm imgui assimp)
 set(CUSTOM_DEFINITIONS)
 if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
     set(CUSTOM_DEFINITIONS ${CUSTOM_DEFINITIONS} _DEBUG)
-endif()
+endif ()
+
+if (WIN32)
+    set(CUSTOM_DEFINITIONS ${CUSTOM_DEFINITIONS} WINDOWS)
+endif ()
 
 target_compile_definitions(SpiritEngine PRIVATE ${CUSTOM_DEFINITIONS})
 
+enable_testing()
 add_subdirectory(test)

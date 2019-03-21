@@ -2,6 +2,7 @@
 
 #include "Material.hpp"
 #include "DefaultShader.hpp"
+#include "Scene.hpp"
 
 Material::Material() {
 	this->shader = std::make_shared<ShaderProgram>();
@@ -10,10 +11,17 @@ Material::Material() {
 	this->initialize();
 }
 
-Material::Material(const std::string &vertexShaderFilename, const std::string &fragmentShaderFilename) {
+Material::Material(const std::string &vertexShader, const std::string &fragmentShader) {
 	this->shader = std::make_shared<ShaderProgram>();
-	this->shader->initFromFiles(vertexShaderFilename, fragmentShaderFilename);
+	auto vertex = Scene::FindShader<VertexShader>(vertexShader);
+	auto fragment = Scene::FindShader<FragmentShader>(fragmentShader);
+	this->shader->initFromShader(vertex, fragment);
 
+	this->initialize();
+}
+
+Material::Material(std::shared_ptr<ShaderProgram> shader) {
+	this->shader = shader;
 	this->initialize();
 }
 

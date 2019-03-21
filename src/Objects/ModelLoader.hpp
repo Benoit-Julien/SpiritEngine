@@ -17,15 +17,15 @@ class ModelLoader : private Singleton<ModelLoader> {
 	virtual ~ModelLoader() = default;
 
  public:
-	static std::shared_ptr<Mesh> LoadModel(const std::string &fileName) {
+	static std::shared_ptr<Mesh> LoadModel(const std::string &name) {
 		auto self = ModelLoader::getSingletonPtr();
 
-		auto elem = self->_modelList.find(fileName);
+		auto elem = self->_modelList.find(name);
 		if (elem != self->_modelList.end())
 			return std::make_shared<Mesh>(*elem->second);
 
-		auto model = std::make_shared<Mesh>(fileName);
-		self->_modelList[fileName] = model;
+		auto model = std::make_shared<Mesh>();
+		self->_modelList[name] = model;
 		return std::make_shared<Mesh>(*model);
 	}
 };

@@ -6,11 +6,10 @@
 #include "Objects/ModelLoader.hpp"
 #include "Global.hpp"
 
-template<>
-std::shared_ptr<Mesh> Scene::CreateObject<Mesh, std::string>(const std::string &fileName) {
+std::shared_ptr<Mesh> Scene::CreateMesh(const std::string &name) {
 	auto self = Scene::getSingletonPtr();
 
-	auto model = ModelLoader::LoadModel(fileName);
+	auto model = ModelLoader::LoadModel(name);
 	self->_objects[model->getObjectID()] = model;
 	return model;
 }
