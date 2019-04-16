@@ -17,7 +17,7 @@ class AFileLoader {
 	virtual ~AFileLoader() = default;
 
 	virtual void FileTreatment(const rapidjson::Document &document, const std::string &fileDirectory) = 0;
-	void LoadAndReadingFile(const std::string &filename) {
+	inline void LoadAndReadingFile(const std::string &filename) {
 		if (filename.rfind(".json") == std::string::npos)
 			throw std::logic_error("Cannot load materials file (" + filename + ") because it isn't a json file.");
 

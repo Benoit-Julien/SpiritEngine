@@ -26,9 +26,6 @@ class ShaderProgram {
 
 	std::unordered_map<std::string, GLint> uniforms;
 
-	template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-	template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
-
  public:
 	typedef std::variant<
 	        int,

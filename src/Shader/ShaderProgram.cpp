@@ -186,6 +186,9 @@ void ShaderProgram::setUniform<glm::mat4>(const std::string &uniformName, const 
 
 /**************************** std::variant ****************************/
 
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
 template<>
 void ShaderProgram::setUniform<ShaderProgram::var_t>(const std::string &uniformName, const ShaderProgram::var_t &value) {
 	std::visit(overloaded{

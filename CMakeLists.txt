@@ -14,6 +14,7 @@ add_subdirectory(glfw)
 include_directories(glfw/include)
 
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "")
+set(BUILD_STATIC_LIBS ON CACHE BOOL "")
 set(GLM_TEST_ENABLE_CXX_17 ON CACHE BOOL "")
 set(GLM_TEST_ENABLE OFF CACHE BOOL "")
 add_subdirectory(glm)
