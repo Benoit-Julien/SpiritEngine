@@ -13,7 +13,12 @@ enum class DrawMode {
 class TriangleObject : public Drawable {
  private:
 	enum BUFFERS {
-		VERTEX_BUFFER, TEXCOORD_BUFFER, NORMAL_BUFFER, INDEX_BUFFER
+		VERTEX_BUFFER,
+		TEXCOORD_BUFFER,
+		NORMAL_BUFFER,
+		TANGENT_BUFFER,
+		BIT_TANGENT_BUFFER,
+		INDEX_BUFFER
 	};
 
  public:
@@ -28,6 +33,8 @@ class TriangleObject : public Drawable {
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec3> normals;
 	std::vector<glm::vec2> uvs;
+	std::vector<glm::vec3> tangents;
+	std::vector<glm::vec3> bitTangents;
 	std::vector<TriangleIndex> triangles;
 
 	bool useOwnMaterial;
@@ -36,7 +43,7 @@ class TriangleObject : public Drawable {
 	DrawMode _drawMode;
 
 	GLuint _vao; /// id or handler
-	GLuint _vbo[4];
+	GLuint _vbo[6];
 
  public:
 	TriangleObject();
@@ -53,6 +60,10 @@ class TriangleObject : public Drawable {
 	inline void setDrawMode(const DrawMode &mode) { this->_drawMode = mode; }
 
 	inline const DrawMode &getDrawMode() const { return this->_drawMode; }
+
+ protected:
+	virtual void beforeDraw() {}
+	virtual void afterDraw() {}
 };
 
 #endif /* !COMPUTERGRAPHICS1_TRIANGLEOBJECT_HPP */

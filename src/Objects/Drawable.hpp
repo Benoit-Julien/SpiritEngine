@@ -13,6 +13,7 @@ class Drawable : public Movable, public CullFace {
 
  public:
 	std::shared_ptr<Material> material;
+	std::string name;
 
  public:
 	Drawable(const ObjectType &type);

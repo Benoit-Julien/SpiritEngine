@@ -85,6 +85,13 @@ void ShaderProgram::setUniform<float>(const std::string &uniformName, const floa
 	glUniform1fv(location, 1, &value);
 }
 
+template<>
+void ShaderProgram::setUniform<bool>(const std::string &uniformName, const bool &value) {
+	GLint location = this->getUniformLocation(uniformName);
+	if (location == -1) return;
+	glUniform1i(location, value);
+}
+
 /**************************** VECTOR2 ****************************/
 
 template<>
@@ -216,7 +223,7 @@ void ShaderProgram::initialise() {
 	// Check the program link status and throw a runtime_error if program linkage failed.
 	GLint programLinkSuccess = GL_FALSE;
 	glGetProgramiv(programId, GL_LINK_STATUS, &programLinkSuccess);
-#ifdef _DEBUG
+#ifdef NDEBUG
 	if (programLinkSuccess == GL_TRUE)
 		std::cout << "Shader program link successful." << std::endl;
 	else
@@ -229,7 +236,7 @@ void ShaderProgram::initialise() {
 	// Check the validation status and throw a runtime_error if program validation failed
 	GLint programValidatationStatus;
 	glGetProgramiv(programId, GL_VALIDATE_STATUS, &programValidatationStatus);
-#ifdef _DEBUG
+#ifdef NDEBUG
 	if (programValidatationStatus == GL_TRUE)
 		std::cout << "Shader program validation successful." << std::endl;
 	else
@@ -265,7 +272,7 @@ GLint ShaderProgram::getUniformLocation(const std::string &uniformName) {
 	GLint location = glGetUniformLocation(this->programId, uniformName.c_str());
 	this->uniforms[uniformName] = location;
 
-#ifdef _DEBUG
+#ifdef NDEBUG
 	if (location == -1) {
 		std::cout << "Could not add uniform: " << uniformName << " - location returned -1." << std::endl;
 		return -1;

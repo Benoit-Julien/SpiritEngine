@@ -4,12 +4,16 @@
 #include <imgui/impl/imgui_impl_opengl3.h>
 #include <iostream>
 #include <thread>
+#include <stb/stb_image.h>
 
 #include "MyGlWindow.hpp"
 #include "Scene.hpp"
 #include "IDGenerator.hpp"
 #include "Viewer.h"
 #include "Global.hpp"
+#include "FBO/FboManager.hpp"
+#include "FBO/TextureManager.hpp"
+#include "PostProcessing.hpp"
 
 static float DEFAULT_VIEW_POINT[3] = {5, 5, 5};
 static float DEFAULT_VIEW_CENTER[3] = {0, 0, 0};
@@ -35,6 +39,9 @@ MyGlWindow::MyGlWindow(const int &w, const int &h) : width(w), height(h) {
 	this->_cy = 0;
 	this->_lastMouseX = 0;
 	this->_lastMouseY = 0;
+
+	this->_postProcessingName = "";
+	this->_drawDepth = false;
 }
 
 MyGlWindow::~MyGlWindow() {
@@ -86,17 +93,20 @@ void MyGlWindow::Run() {
 	physicThread.join();
 }
 
+void MyGlWindow::ChangeWindowsLogo(const std::string &path) {
+	GLFWimage icon;
+	int channels;
+
+	icon.pixels = stbi_load(path.c_str(), &icon.width, &icon.height, &channels, 0);
+	if (!icon.pixels)
+		throw std::logic_error("Fail to load logo image : " + path);
+
+	glfwSetWindowIcon(this->_window, 1, &icon);
+}
+
 void MyGlWindow::drawingLoop() {
 	while (!glfwWindowShouldClose(this->_window)) {
 		Scene::BeforeDrawing();
-
-		glClearColor(0.2f, 0.2f, 0.2f, 1.0); /// background color
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		glEnable(GL_DEPTH_TEST);
-
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		int display_w, display_h;
 		glfwGetFramebufferSize(this->_window, &display_w, &display_h);
@@ -110,6 +120,7 @@ void MyGlWindow::drawingLoop() {
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
+		//Scene::DrawObjectsList();
 		this->draw();
 
 		ImGui::Render();
@@ -126,10 +137,13 @@ void MyGlWindow::drawingLoop() {
 }
 
 void MyGlWindow::physicalLoop() {
+	long long waitTime = 100;
+
 	while (this->_windowOpen) {
 		Scene::PhysicalUpdate();
 		for (auto &physicFunc : this->_physicalUpdateFunction)
 			physicFunc.second();
+		std::this_thread::sleep_for(std::chrono::milliseconds(waitTime));
 	}
 }
 
@@ -143,11 +157,27 @@ void MyGlWindow::draw() {
 																					this->_viewer->getAspectRatio(),
 																					0.1f,
 																					500.0f);
-	DrawInformation info = {view, projection};
+	DrawInformation info = {view, projection, eye};
+
 	for (auto &func : this->_frameFunction)
 		func.second(info);
 
+	glBindFramebuffer(GL_FRAMEBUFFER, this->_fboManager->getFboId());
+	glClearColor(0.2f, 0.2f, .2f, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
+
 	Scene::Draw(info);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDisable(GL_DEPTH_TEST);
+
+	if (this->_drawDepth)
+		PostProcessing::DrawDepth(this->_texManager->Get("depth_tex"));
+	else
+		PostProcessing::Draw(this->_texManager->Get("render_tex"), this->_postProcessingName);
+
+	//ImGui::ShowDemoWindow();
 }
 
 void MyGlWindow::windowResize(int w, int h) {
@@ -156,6 +186,16 @@ void MyGlWindow::windowResize(int w, int h) {
 
 	float aspect = (w / (float) h);
 	this->_viewer->setAspectRatio(aspect);
+
+	this->_texManager->CreateTexture("render_tex", this->width, this->height, GL_NEAREST, GL_RGB, GL_RGB, false);
+	this->_texManager->CreateTexture("depth_tex", this->width, this->height, GL_LINEAR, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, true);
+
+	this->_fboManager = std::make_shared<FboManager>();
+	this->_fboManager->bindToFbo(GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->_texManager->Get("render_tex"));
+	this->_fboManager->bindToFbo(GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->_texManager->Get("depth_tex"));
+
+	this->_fboManager->setDrawBuffers();
+	assert(this->_fboManager->checkFboStatus());
 }
 
 void MyGlWindow::initialize() {
@@ -190,13 +230,6 @@ void MyGlWindow::initialize() {
 //ImGui::StyleColorsLight();
 
 	glfwMakeContextCurrent(this->_window);
-	/* Make the window's context current */
-	//glewExperimental = GL_TRUE;
-	//GLenum err = glewInit();
-	//if (err != GLEW_OK) {
-		//Problem: glewInit failed, something is seriously wrong.
-		//throw std::runtime_error("glewInit failed, aborting.");
-	//}
 	if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress))
 		throw std::runtime_error("Failed to initialize OpenGL context.");
 
@@ -210,6 +243,25 @@ void MyGlWindow::initialize() {
 	glfwSetCursorPosCallback(this->_window, genericCallback(cursor_pos_callback));
 	glfwSetScrollCallback(this->_window, genericCallback(scroll_callback));
 	glfwSetMouseButtonCallback(this->_window, genericCallback(mouse_button_callback));
+
+	this->_texManager = std::make_shared<TextureManager>();
+	this->_texManager->CreateTexture("render_tex", this->width, this->height, GL_NEAREST, GL_RGB, GL_RGB, false);
+	this->_texManager->CreateTexture("depth_tex", this->width, this->height, GL_LINEAR, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, true);
+
+	this->_fboManager = std::make_shared<FboManager>();
+	this->_fboManager->bindToFbo(GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->_texManager->Get("render_tex"));
+	this->_fboManager->bindToFbo(GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->_texManager->Get("depth_tex"));
+
+	this->_fboManager->setDrawBuffers();
+	assert(this->_fboManager->checkFboStatus());
+
+	GLFWimage icon;
+	int channels;
+
+	icon.pixels = (unsigned char *)DefaultLogo;
+	icon.width = DefaultLogoWidth;
+	icon.height = DefaultLogoHeight;
+	glfwSetWindowIcon(this->_window, 1, &icon);
 }
 
 void MyGlWindow::key_callback(int key, int scancode, int action, int mods) {
@@ -223,7 +275,7 @@ void MyGlWindow::cursor_pos_callback(double xpos, double ypos) {
 }
 
 void MyGlWindow::scroll_callback(double xoffset, double yoffset) {
-	this->_viewer->zoom(yoffset * 0.01f);
+	this->_viewer->zoom(yoffset * 0.01);
 }
 
 void MyGlWindow::mouse_button_callback(int button, int action, int mods) {

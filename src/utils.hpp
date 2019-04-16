@@ -8,7 +8,7 @@
 #ifdef WINDOWS
 	#include <direct.h>
 	#define GetCurrentDir _getcwd
-	#define PATH_DELIMITER '\\'
+	#define PATH_DELIMITER '/'
 #else
 
 	#include <unistd.h>
@@ -16,6 +16,10 @@
 	#define GetCurrentDir getcwd
 	#define PATH_DELIMITER '/'
 #endif
+
+extern const unsigned char *DefaultLogo;
+static const int DefaultLogoWidth = 128;
+static const int DefaultLogoHeight = 128;
 
 static std::string GetCurrentWorkingDir() {
 	char buff[FILENAME_MAX];
@@ -101,6 +105,13 @@ static std::string GetFileName(const std::string &filePath, const bool &extensio
 	deli = (deli == std::string::npos) ? 0 : deli;
 	dotpos = (dotpos <= deli) ? std::string::npos : dotpos;
 	return filePath.substr(deli + 1, dotpos - deli - 1);
+}
+
+static std::string JoinPath(const std::vector<std::string> &paths) {
+	std::string result;
+	for (auto &it : paths)
+		result += PATH_DELIMITER + it;
+	return CleanFilePath(result);
 }
 
 #endif /* !SPIRITENGINE_UTILS_HPP */

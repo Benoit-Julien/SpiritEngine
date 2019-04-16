@@ -59,6 +59,24 @@
       "name": "TexturedMesh",
       "vertex": "textured.vert",
       "fragment": "textured.frag"
+    },
+    {
+      "name": "Skybox",
+      "vertex": "skybox.vert",
+      "fragment": "skybox.frag",
+      "texture": "Skybox"
+    },
+    {
+      "name": "Cubemap",
+      "vertex": "cubemap.vert",
+      "fragment": "cubemap.frag",
+      "texture": "Skybox"
+    },
+    {
+      "name": "Refraction",
+      "vertex": "refract.vert",
+      "fragment": "refract.frag",
+      "texture": "Skybox"
     }
   ]
 }

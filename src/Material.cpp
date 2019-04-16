@@ -34,22 +34,31 @@ void Material::use() {
 	this->shader->setUniform("material.specular", this->Specular);
 	this->shader->setUniform("material.shiness", this->shiness);
 
+	int index = 0;
 	if (!this->textures.empty()) {
-		int index = 0;
 		for (auto &text : this->textures) {
-			glActiveTexture(GL_TEXTURE0+index);
+			glActiveTexture(GL_TEXTURE0 + index);
 			text->use();
 			this->shader->setUniform("material.textures[" + std::to_string(index) + "]", index);
 			index++;
 		}
-		this->shader->setUniform("material.textNumber", (unsigned int)this->textures.size());
+		this->shader->setUniform("material.textNumber", (unsigned int) this->textures.size());
+	}
+	if (this->normalMap != nullptr) {
+		glActiveTexture(GL_TEXTURE0 + index);
+		this->normalMap->use();
+		this->shader->setUniform("material.normalTex", index);
+		index++;
 	}
 }
 
 void Material::disable() {
-	if (!this->textures.empty())
+	if (!this->textures.empty()) {
 		for (auto &text : this->textures)
 			text->disable();
+	}
+	if (this->normalMap)
+		this->normalMap->disable();
 	this->shader->disable();
 }
 
@@ -59,12 +68,12 @@ void Material::AddTexture(std::shared_ptr<Texture> texture) {
 
 	FIND_TEXTURE
 	if (t != this->textures.end())
-#ifdef _DEBUG
-	{
-		std::cerr << "Cannot add texture to this material because it's already present." << std::endl;
-		return;
-	}
-#elif
+#ifdef NDEBUG
+		{
+			std::cerr << "Cannot add texture to this material because it's already present." << std::endl;
+			return;
+		}
+#else
 		return;
 #endif
 	this->textures.push_back(texture);
@@ -73,13 +82,13 @@ void Material::AddTexture(std::shared_ptr<Texture> texture) {
 void Material::RemoveTexture(std::shared_ptr<Texture> texture) {
 	FIND_TEXTURE
 	if (t == this->textures.end())
-#ifdef _DEBUG
-	{
-		std::cerr << "Cannot remove this texture to this material because it's not present." << std::endl;
+#ifdef NDEBUG
+		{
+			std::cerr << "Cannot remove this texture to this material because it's not present." << std::endl;
+			return;
+		}
+#else
 		return;
-	}
-#elif
-	return;
 #endif
 	this->textures.erase(t);
 }

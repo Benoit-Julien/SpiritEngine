@@ -35,6 +35,20 @@ struct Material {
     sampler2D textures[MAX_TEXTURES];
 };
 
+struct LightInfos {
+    vec3 L;
+    float d;
+    float attenuation;
+
+    vec3 N;
+    vec3 V;
+    vec3 H;
+
+    float dotNL;
+    float dotHN;
+    float pf;
+};
+
 in vec3 fNormal;
 in vec3 fPosition;
 in vec2 texCoord;
@@ -51,7 +65,6 @@ const float a = 1.0;
 const float b = 0.1;
 const float c = 0.01;
 
-
 // We need to create at least one "out vec4" for setting color fragment colors
 out vec4 fragColor;// r,g,b,a
 
@@ -61,42 +74,39 @@ float CalcAttenuation(float distance) {
     return 1.0 / (a + b*d + c*d2);
 }
 
+LightInfos CalcLightInformations(vec3 lightPosition, vec3 normal) {
+    LightInfos infos;
+
+    infos.L = lightPosition - fPosition;
+    infos.d = length(infos.L);
+    infos.attenuation = CalcAttenuation(infos.d);
+
+    infos.L = normalize(infos.L);
+    infos.N = normal;
+    infos.V = normalize(-vec3(fPosition));
+    infos.H = normalize(infos.V + infos.L);
+
+    infos.dotNL = max(dot(infos.N, infos.L), 0);
+    infos.dotHN = max(dot(infos.H, infos.N), 0);
+    infos.pf = pow(infos.dotHN, material.shiness);
+
+    return infos;
+}
+
 vec4 CalcColor(Light light, vec4 texColor) {
-    vec3 L = light.position - fPosition;
-    float d = length(L);
-    float attenuation = CalcAttenuation(d);
-
-    L = normalize(L);
-    vec3 N = fNormal;
-    vec3 V = normalize(-vec3(fPosition));
-    vec3 H = normalize(V + L);
-
-    float dotNL = max(dot(N, L), 0);
-    float dotHN = max(dot(H, N), 0);
-    float pf = pow(dotHN, material.shiness);
+    LightInfos infos = CalcLightInformations(light.position, fNormal);
 
     //vec3 ambient = material.ambient * light.ambient * light.intensity * attenuation;
-    vec3 diffuse = material.diffuse * light.diffuse * dotNL * light.intensity * attenuation;
-    vec3 specular = material.specular * light.specular * pf * light.intensity * attenuation;
+    vec3 diffuse = material.diffuse * light.diffuse * infos.dotNL * light.intensity * infos.attenuation;
+    vec3 specular = material.specular * light.specular * infos.pf * light.intensity * infos.attenuation;
 
     return (vec4(diffuse, 1.0) * texColor) + vec4(specular, 1.0);
 }
 
 vec4 CalcSpotColor(SpotLight light, vec4 texColor) {
-    vec3 L = light.position - fPosition;
-    float d = length(L);
-    float attenuation = CalcAttenuation(d);
+    LightInfos infos = CalcLightInformations(light.position, fNormal);
 
-    L = normalize(L);
-    vec3 N = fNormal;
-    vec3 V = normalize(-vec3(fPosition));
-    vec3 H = normalize(V + L);
-
-    float dotNL = max(dot(N, L), 0);
-    float dotHN = max(dot(H, N), 0);
-    float pf = pow(dotHN, material.shiness);
-
-    float spotDir = dot(-L, normalize(light.direction));
+    float spotDir = dot(-infos.L, normalize(light.direction));
     float angle = acos(spotDir);// radian angle
 
     float spotAttenuation;
@@ -106,11 +116,11 @@ vec4 CalcSpotColor(SpotLight light, vec4 texColor) {
         float spotValue = smoothstep(cos(radians(light.cutoff)), cos(radians(light.innerCutoff)), spotDir);
         spotAttenuation = pow(spotValue, light.exponent);
     }
-    attenuation *= spotAttenuation;
+    float attenuation = infos.attenuation * spotAttenuation;
 
     //vec3 ambient = material.ambient * light.ambient * light.intensity * attenuation;
-    vec3 diffuse = material.diffuse * light.diffuse * light.intensity * dotNL * attenuation;
-    vec3 specular = material.specular * light.specular * light.intensity * pf * attenuation;
+    vec3 diffuse = material.diffuse * light.diffuse * light.intensity * infos.dotNL * attenuation;
+    vec3 specular = material.specular * light.specular * light.intensity * infos.pf * attenuation;
 
     return (vec4(diffuse, 1.0) * texColor) + vec4(specular, 1.0);
 }
@@ -126,6 +136,9 @@ vec4 CalcTextureColor() {
 
 void main() {
     vec4 texColor = CalcTextureColor();
+    if (texColor.a < 0.1)
+        discard;
+
     vec4 result = vec4(material.ambient, 1.0) * texColor;
 
     for (int i = 0; i < lightNumber; i++)

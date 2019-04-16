@@ -5,6 +5,7 @@ TriangleObject::TriangleObject()
 				: Drawable(ObjectType::Triangle),
 					useOwnMaterial(true),
 					_drawMode(DrawMode::Shape) {
+	this->name = "Triangle";
 }
 
 TriangleObject::TriangleObject(const ObjectType &type)
@@ -20,7 +21,11 @@ TriangleObject::~TriangleObject() {
 		glDeleteBuffers(1, &this->_vbo[TEXCOORD_BUFFER]);
 	if (this->_vbo[NORMAL_BUFFER] != 0)
 		glDeleteBuffers(1, &this->_vbo[NORMAL_BUFFER]);
-	if (this->_vbo[VERTEX_BUFFER] != 0)
+	if (this->_vbo[TANGENT_BUFFER] != 0)
+		glDeleteBuffers(1, &this->_vbo[TANGENT_BUFFER]);
+	if (this->_vbo[BIT_TANGENT_BUFFER] != 0)
+		glDeleteBuffers(1, &this->_vbo[BIT_TANGENT_BUFFER]);
+	if (this->_vbo[INDEX_BUFFER] != 0)
 		glDeleteBuffers(1, &this->_vbo[INDEX_BUFFER]);
 
 	glDeleteVertexArrays(1, &this->_vao);
@@ -45,6 +50,7 @@ TriangleObject &TriangleObject::operator=(const TriangleObject &object) {
 	this->setup();
 	return *this;
 }
+
 void TriangleObject::Draw(const ShaderVariables &variables) {
 	if (!this->Enabled())
 		return;
@@ -64,9 +70,13 @@ void TriangleObject::Draw(const ShaderVariables &variables) {
 	if (this->_drawMode == DrawMode::WireFrame)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+	this->beforeDraw();
+
 	int size;
 	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
 	glDrawElements(GL_TRIANGLES, size / sizeof(GLuint), GL_UNSIGNED_INT, nullptr);
+
+	this->afterDraw();
 
 	if (this->_drawMode == DrawMode::WireFrame)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -127,6 +137,38 @@ void TriangleObject::setup() {
 						nullptr
 		);
 		glEnableVertexAttribArray(2);
+	}
+
+	if (!this->tangents.empty()) {
+		glGenBuffers(1, &this->_vbo[TANGENT_BUFFER]);
+		glBindBuffer(GL_ARRAY_BUFFER, this->_vbo[TANGENT_BUFFER]); // activate it
+		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * this->tangents.size(), this->tangents.data(),
+								 GL_STATIC_DRAW); /// Create a buffer on GPU memory and copy data
+		glVertexAttribPointer( // color
+						3,
+						3,
+						GL_FLOAT,
+						GL_FALSE,
+						0, // gab between two vertices
+						nullptr
+		);
+		glEnableVertexAttribArray(3); /// 3: attribute number
+	}
+
+	if (!this->bitTangents.empty()) {
+		glGenBuffers(1, &this->_vbo[BIT_TANGENT_BUFFER]);
+		glBindBuffer(GL_ARRAY_BUFFER, this->_vbo[BIT_TANGENT_BUFFER]); // activate it
+		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * this->bitTangents.size(), this->bitTangents.data(),
+								 GL_STATIC_DRAW); /// Create a buffer on GPU memory and copy data
+		glVertexAttribPointer( // color
+						4,
+						3,
+						GL_FLOAT,
+						GL_FALSE,
+						0, // gab between two vertices
+						nullptr
+		);
+		glEnableVertexAttribArray(4); /// 4: attribute number
 	}
 
 	if (!this->triangles.empty()) {

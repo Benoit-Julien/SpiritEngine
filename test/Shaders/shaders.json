@@ -3,14 +3,49 @@
     "vertexes": [
       "silhouette.vert",
       "simple.vert",
-      "textured.vert"
+      "textured.vert",
+      "normalMapping.vert",
+      "skybox.vert",
+      "cubemap.vert",
+      "refract.vert"
     ],
     "fragments": [
       "BlinnPhongShading.frag",
       "CartoonShading.frag",
       "PhongShading.frag",
       "silhouette.frag",
-      "textured.frag"
+      "textured.frag",
+      "normalMapping.frag",
+      "skybox.frag",
+      "cubemap.frag",
+      "refract.frag"
     ]
-  }
+  },
+  "post-processing": [
+    {
+      "name": "blur",
+      "vertex": "PostProcessing/postProcessing.vert",
+      "fragment": "PostProcessing/blur.frag"
+    },
+    {
+      "name": "sharpening",
+      "vertex": "PostProcessing/postProcessing.vert",
+      "fragment": "PostProcessing/sharpening.frag"
+    },
+    {
+      "name": "greyscale",
+      "vertex": "PostProcessing/postProcessing.vert",
+      "fragment": "PostProcessing/greyscale.frag"
+    },
+    {
+      "name": "sephia",
+      "vertex": "PostProcessing/postProcessing.vert",
+      "fragment": "PostProcessing/sephia.frag"
+    },
+    {
+      "name": "sobel",
+      "vertex": "PostProcessing/postProcessing.vert",
+      "fragment": "PostProcessing/sobel.frag"
+    }
+  ]
 }

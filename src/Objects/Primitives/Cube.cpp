@@ -3,6 +3,7 @@
 Cube::Cube() : TriangleObject(ObjectType::Cube) {
 	this->setupVertices();
 	this->setup();
+	this->name = "Cube";
 }
 
 Cube::~Cube() {}

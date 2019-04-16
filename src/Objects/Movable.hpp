@@ -11,6 +11,10 @@ class Movable : public Object {
 
 	glm::mat4 _modelMatrix;
 
+	bool _translateLocked;
+	bool _rotateLocked;
+	bool _scaleLocked;
+
  public:
 	std::shared_ptr<Movable> Parent;
 	std::vector<std::shared_ptr<Movable>> Children;
@@ -32,6 +36,18 @@ class Movable : public Object {
 	void Rotate(const float &degree, const glm::vec3 &axis);
 	void Rotate(const glm::mat4 &mat);
 	void Scale(const glm::vec3 &vec);
+
+	inline void LockTranslate() { this->_translateLocked = true; }
+	inline void LockRotate() { this->_rotateLocked = true; }
+	inline void LockScale() { this->_scaleLocked = true; }
+
+	inline void UnlockTranslate() { this->_translateLocked = false; }
+	inline void UnlockRotate() { this->_rotateLocked = false; }
+	inline void UnlockScale() { this->_scaleLocked = false; }
+
+	inline bool IsTranlateLocked() const { return this->_translateLocked; }
+	inline bool IsRotateLocked() const { return this->_rotateLocked; }
+	inline bool IsScaleLocked() const { return this->_scaleLocked; }
 
 	glm::vec3 ToWorldPosition() const;
 	glm::mat4 ToWorldRotation() const;

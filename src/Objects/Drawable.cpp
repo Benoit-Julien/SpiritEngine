@@ -30,6 +30,7 @@ void Drawable::updateShaderUniform(const ShaderVariables &variables) {
 	this->material->shader->setUniform("normalMatrix", variables.normalMatrix);
 	this->material->shader->setUniform("viewMatrix", variables.viewMatrix);
 	this->material->shader->setUniform("projectionMatrix", variables.projectionMatrix);
+	this->material->shader->setUniform("cameraPosition", variables.cameraPosition);
 
 	unsigned int lightIndex = 0;
 	unsigned int spotIndex = 0;

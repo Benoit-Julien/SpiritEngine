@@ -13,11 +13,11 @@ class CullFace {
 	CullFace &operator=(const CullFace &cull);
 	~CullFace();
 
-	void SetCullFaceOption(const GLenum &cullface);
+	virtual void SetCullFaceOption(const GLenum &cullface);
 	inline const GLenum &GetCullFaceOption() const { return this->_cullface; }
 
 	void EnableCulling();
-	void DisableCulling();
+	virtual void DisableCulling();
 	inline const bool &Culling() const { return this->_enabledCulling; }
 };
 

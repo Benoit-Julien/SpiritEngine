@@ -7,10 +7,14 @@
 #include "Singleton.hpp"
 
 #define ATTRIBUTE_CHECKER(n, t) \
-	if (texture.HasMember(t)) { \
-		assert(texture[t].IsString()); \
-		text->n = GetEnumFromString(texture[t].GetString(), n##Dict); \
-	}
+  if (texture.HasMember(t)) { \
+    assert(texture[t].IsString()); \
+    tex->n = GetEnumFromString(texture[t].GetString(), n##Dict); \
+  }
+
+#define GET_SKYBOX_TEXTURE(name, face) \
+  assert(texture["images"].HasMember(#name) && texture["images"][name].IsString()); \
+  cubeMap[face] = CleanFilePath(texture["images"][name].GetString(), fileDirectory);
 
 class TexturesFileLoader : public Singleton<TexturesFileLoader>, public AFileLoader {
 	friend Singleton<TexturesFileLoader>;

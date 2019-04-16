@@ -22,11 +22,17 @@
 struct DrawInformation {
 	glm::mat4 viewMatrix;
 	glm::mat4 projectionMatrix;
+	glm::vec3 cameraPosition;
 };
 
 class Scene : public Singleton<Scene> {
 	friend Singleton<Scene>;
 
+ private:
+	Scene() = default;
+	virtual ~Scene() = default;
+
+ private:
 	std::unordered_map<unsigned int, std::shared_ptr<Drawable>> _objects;
 	std::unordered_map<std::string, std::shared_ptr<Material>> _materials;
 	std::unordered_map<std::string, std::shared_ptr<Texture>> _textures;
@@ -34,9 +40,6 @@ class Scene : public Singleton<Scene> {
 	std::unordered_map<std::string, std::shared_ptr<AShader>> _shaders;
 
 	std::vector<std::pair<std::shared_ptr<Drawable>, std::chrono::time_point<std::chrono::system_clock>>> _toDestroy;
-
-	Scene() = default;
-	virtual ~Scene() = default;
 
  public:
 	template<class T, typename... Args>
@@ -63,14 +66,15 @@ class Scene : public Singleton<Scene> {
 		return mat;
 	}
 
-	static std::shared_ptr<Texture> CreateTexture(const std::string &name) {
+	template<class T, typename... Args>
+	static std::shared_ptr<T> CreateTexture(const std::string &name, const Args& ...args) {
 		auto self = Scene::getSingletonPtr();
 
 		auto elem = self->_textures.find(name);
 		if (elem != self->_textures.end())
-			return elem->second;
+			return std::dynamic_pointer_cast<T>(elem->second);
 
-		auto tex = std::make_shared<Texture>();
+		auto tex = std::make_shared<T>(args...);
 		self->_textures[name] = tex;
 		return tex;
 	}
@@ -133,6 +137,7 @@ class Scene : public Singleton<Scene> {
 	static void BeforeDrawing();
 	static void PhysicalUpdate();
 	static void Draw(const DrawInformation &info);
+	//static void DrawObjectsList();
 
  private:
 	void recursiveDraw(std::shared_ptr<Drawable> obj, const DrawInformation &info, const glm::mat4 &model);

@@ -1,6 +1,7 @@
 #include <exception>
 #include <iostream>
 #include <algorithm>
+#include <imgui/imgui.h>
 
 #include "Scene.hpp"
 #include "Objects/ModelLoader.hpp"
@@ -144,6 +145,32 @@ void Scene::Draw(const DrawInformation &info) {
 			self->recursiveDraw(obj.second, info, glm::mat4(1.0f));
 	}
 }
+/*
+static void drawListChildren(std::shared_ptr<Drawable> parent) {
+	auto name = parent->name.c_str();
+	std::cout << name << std::endl;
+	if (parent->Children.empty())
+		ImGui::Text(name);
+	else {
+		if (ImGui::TreeNode(name)) {
+			for (auto &child : parent->Children)
+				drawListChildren(std::dynamic_pointer_cast<Drawable>(child));
+			ImGui::TreePop();
+		}
+	}
+}
+
+void Scene::DrawObjectsList() {
+	auto self = Scene::getSingletonPtr();
+
+	if (ImGui::Begin("Objects")) {
+		for (auto &obj : self->_objects) {
+			if (!obj.second->Parent)
+				drawListChildren(obj.second);
+		}
+	}
+	ImGui::End();
+}*/
 
 void Scene::recursiveDraw(std::shared_ptr<Drawable> obj, const DrawInformation &info, const glm::mat4 &model) {
 	if (!obj)
@@ -153,7 +180,7 @@ void Scene::recursiveDraw(std::shared_ptr<Drawable> obj, const DrawInformation &
 	glm::mat3 n = glm::mat3(glm::transpose(glm::inverse(info.viewMatrix * m)));
 	GLuint lightNumber = this->_lights.size();
 
-	obj->Draw(ShaderVariables(m, n, info.viewMatrix, info.projectionMatrix, this->_lights));
+	obj->Draw(ShaderVariables(m, n, info.viewMatrix, info.projectionMatrix, info.cameraPosition, this->_lights));
 
 	for (auto &children : obj->Children)
 		Scene::recursiveDraw(std::dynamic_pointer_cast<Drawable>(children), info, m);

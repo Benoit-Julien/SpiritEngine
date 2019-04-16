@@ -10,6 +10,7 @@ Sphere::Sphere(const float &radius, const int &nbLong, const int &nbLat)
 					_nbLat(nbLat) {
 	this->setupVertices();
 	this->setup();
+	this->name = "Sphere";
 }
 
 Sphere::~Sphere() {}

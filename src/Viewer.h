@@ -77,7 +77,7 @@ class Viewer {
 	 * zoom speed.
 	 *
 	*/
-	void zoom(float changeVert);
+	void zoom(double changeVert);
 
 	/**
 	 * Rotate

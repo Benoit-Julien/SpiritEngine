@@ -3,6 +3,7 @@
 Plane::Plane() : TriangleObject(ObjectType::Plane) {
 	this->setupVertices();
 	this->setup();
+	this->name = "Plane";
 }
 
 Plane::~Plane() {}

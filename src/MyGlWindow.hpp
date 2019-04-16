@@ -11,6 +11,9 @@
 #include "Viewer.h"
 #include "Scene.hpp"
 
+#include "FBO/FboManager.hpp"
+#include "FBO/TextureManager.hpp"
+
 #define genericCallback(functionName)\
         [](GLFWwindow* window, auto... args) {\
             auto pointer = static_cast<MyGlWindow*>(glfwGetWindowUserPointer(window));\
@@ -21,11 +24,16 @@ class MyGlWindow {
  private:
 	GLFWwindow *_window;
 	std::shared_ptr<Viewer> _viewer;
+	std::shared_ptr<FboManager> _fboManager;
+	std::shared_ptr<TextureManager> _texManager;
 
-	std::unordered_map<unsigned int, std::function<void (DrawInformation &)>> _frameFunction;
-	std::unordered_map<unsigned int, std::function<void ()>> _physicalUpdateFunction;
+	std::unordered_map<unsigned int, std::function<void(DrawInformation &)>> _frameFunction;
+	std::unordered_map<unsigned int, std::function<void()>> _physicalUpdateFunction;
 
 	bool _windowOpen;
+
+	std::string _postProcessingName;
+	bool _drawDepth;
 
  public:
 	int width;
@@ -44,11 +52,18 @@ class MyGlWindow {
 
 	void Run();
 
-	unsigned int RegisterFrameFunction(const std::function<void (DrawInformation &)> &func);
+	unsigned int RegisterFrameFunction(const std::function<void(DrawInformation &)> &func);
 	void UnRegisterFrameFunction(const unsigned int &ID);
 
-	unsigned int RegisterPhysicalUpdateFunction(const std::function<void ()> &func);
+	unsigned int RegisterPhysicalUpdateFunction(const std::function<void()> &func);
 	void UnRegisterPhysicalUpdateFunction(const unsigned int &ID);
+
+	inline void SetPostProcessing(const std::string &name) { this->_postProcessingName = name; }
+	inline void ResetPostProcessing() { this->_postProcessingName = ""; }
+
+	inline void DrawDepth(const bool &depth) { this->_drawDepth = depth; }
+
+	void ChangeWindowsLogo(const std::string &path);
 
  private:
 	void physicalLoop();

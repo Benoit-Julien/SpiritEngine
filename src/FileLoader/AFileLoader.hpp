@@ -31,7 +31,7 @@ class AFileLoader {
 
 		if (document.HasParseError()) {
 			throw std::runtime_error("Error(offset "
-															 + std::to_string(document.GetErrorOffset())
+															 + std::to_string(document.GetErrorOffset()) + ")"
 															 + ": " + GetParseError_En(document.GetParseError()));
 		}
 

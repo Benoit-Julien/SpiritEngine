@@ -45,8 +45,7 @@ void Viewer::translate(float changeHoriz, float changeVert, bool inImagePlane) {
 	m_viewCenter += translateVec;
 }
 
-void Viewer::zoom(float changeVert) {
-
+void Viewer::zoom(double changeVert) {
 	float scaleFactor = powf(2.0, -changeVert * m_zoomFraction);
 	m_viewPoint = m_viewCenter + (m_viewPoint - m_viewCenter) * scaleFactor;
 
@@ -199,6 +198,6 @@ void Viewer::getFrustrumInfo() {
 	m_imagePlaneHorizDir = glm::normalize(m_imagePlaneHorizDir);
 
 	// Get the view plane width and height at the view center.
-	m_displayHeight = 2.0 * glm::length(m_viewCenter - m_viewPoint) * tan(0.5 * m_fieldOfView);
+	m_displayHeight = 2.0f * glm::length(m_viewCenter - m_viewPoint) * tan(0.5 * m_fieldOfView);
 	m_displayWidth = m_displayHeight * m_aspectRatio;
 }

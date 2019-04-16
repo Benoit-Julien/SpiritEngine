@@ -6,6 +6,7 @@
 #include <Objects/Primitives/Cube.hpp>
 #include <Objects/Primitives/Sphere.hpp>
 #include <Objects/Primitives/Plane.hpp>
+#include <Objects/Primitives/SkyBox.hpp>
 #include <Objects/Mesh.hpp>
 
 #include <Objects/Lights/Light.hpp>
@@ -15,6 +16,7 @@
 
 #include <iostream>
 #include <string>
+#include <PostProcessing.hpp>
 
 static int width = 1280;
 static int height = 720;
@@ -43,21 +45,16 @@ static int height = 720;
 #define MODELS_DIR std::string(MODELS_DIRECTORY)
 #endif
 
-/*
-#include "Crane.hpp"
-#include <imgui/imgui.h>
-
-static void DrawHelp() {
+static void DrawHelp(DrawInformation &) {
 	if (ImGui::Begin("Camera help")) {
-		ImGui::SetWindowSize(ImVec2(400, 300));
+		ImGui::SetWindowSize(ImVec2(400, 100));
 
 		ImGui::Text("Use mouse left click to rotate the camera.");
 		ImGui::Text("Use mouse right click to move the camera look point.");
 		ImGui::Text("Use mouse wheel to zoom.");
-
-		ImGui::End();
 	}
-}*/
+	ImGui::End();
+}
 
 //#define GLM_ENABLE_EXPERIMENTAL
 //#include <glm/gtx/string_cast.hpp>
@@ -65,21 +62,21 @@ static void DrawHelp() {
 static auto chrono = std::chrono::system_clock::now() + std::chrono::milliseconds(250);
 static int counter = 0;
 
-static void DrawFrameRate(DrawInformation &info) {
+static void DrawFrameRate(DrawInformation &) {
 	static int rate = 0;
 
-	if (ImGui::Begin("Frame Rate")) {
-		if (std::chrono::system_clock::now() > chrono) {
-			rate = counter * 4;
-			chrono = std::chrono::system_clock::now() + std::chrono::milliseconds(250);
-			counter = 0;
-		}
-		else
-			counter++;
-
-		ImGui::Value("Frame Rate", rate);
-		ImGui::End();
+	if (std::chrono::system_clock::now() > chrono) {
+		rate = counter * 4;
+		chrono = std::chrono::system_clock::now() + std::chrono::milliseconds(250);
+		counter = 0;
 	}
+	else
+		counter++;
+	if (ImGui::Begin("Frame Rate")) {
+		ImGui::SetWindowSize(ImVec2(150, 50));
+		ImGui::Value("Frame Rate", rate);
+	}
+	ImGui::End();
 }
 
 int main() {
@@ -90,14 +87,55 @@ int main() {
 	Scene::LoadMaterialFile(MATERIALS_DIR + "materials.json");
 	//Scene::LoadMaterialFile(MATERIALS_DIR + "simple.json");
 	{
+		window->RegisterFrameFunction([window](DrawInformation &) {
+			static bool drawDepth = false;
+			static const char *postProcessingEffect[] = {"default", "blur", "sharpening", "greyscale", "sephia", "sobel"};
+			static int postProcessingIndex = 0;
+
+			if (ImGui::Begin("Post Processing")) {
+				ImGui::SetWindowSize(ImVec2(290, 80));
+				ImGui::Checkbox("Depth Map", &drawDepth);
+				ImGui::Combo("Effect", &postProcessingIndex, postProcessingEffect, IM_ARRAYSIZE(postProcessingEffect));
+			}
+			ImGui::End();
+
+			window->DrawDepth(drawDepth);
+
+			if (postProcessingIndex == 0)
+				window->ResetPostProcessing();
+			else
+				window->SetPostProcessing(postProcessingEffect[postProcessingIndex]);
+		});
+
+		/*auto skybox = Scene::CreateObject<SkyBox>();
+		skybox->material = Scene::FindMaterial("Skybox");*/
+
+		/*auto teapot = Scene::CreateMesh("teapot");
+		teapot->material = Scene::FindMaterial("Cubemap");
+		teapot->LoadMesh(MODELS_DIR + "teapot.3ds");
+		teapot->SetCustomUniform("material.color", glm::vec4(0.4f, 0.4f, 0.4f, 1.0f));
+		teapot->SetCustomUniform("material.reflectFactor", 0.85f);
+		teapot->Scale(glm::vec3(0.1, 0.1, 0.1));
+		teapot->Rotate(-90, glm::vec3(1, 0, 0));*/
+
+		/*auto teapot = Scene::CreateMesh("teapot");
+		teapot->material = Scene::FindMaterial("Refraction");
+		teapot->LoadMesh(MODELS_DIR + "teapot.3ds");
+		//teapot->SetCustomUniform("material.reflectFactor", 0.1f);
+		teapot->SetCustomUniform("EtaR", 0.65f);
+		teapot->SetCustomUniform("EtaG", 0.67f);
+		teapot->SetCustomUniform("EtaB", 0.69f);
+		teapot->Scale(glm::vec3(0.1, 0.1, 0.1));
+		teapot->Rotate(-90, glm::vec3(1, 0, 0));*/
+
 		/*auto plane = Scene::CreateObject<Plane>();
 		plane->material = Scene::FindMaterial("plane");
-		plane->Scale(glm::vec3(1000, 1, 1000));
-		plane->SetCustomUniform("fogColor", glm::vec3(0.5, 0.5, 0.5));
+		plane->Scale(glm::vec3(1000, 1, 1000));*/
+		/*plane->SetCustomUniform("fogColor", glm::vec3(0.5, 0.5, 0.5));
 		plane->SetCustomUniform("minDist", 0.1f);
-		plane->SetCustomUniform("maxDist", 10.0f);
+		plane->SetCustomUniform("maxDist", 10.0f);*/
 
-		auto cube = Scene::CreateObject<Cube>();
+		/*auto cube = Scene::CreateObject<Cube>();
 		cube->Translate(glm::vec3(3, 1.5, 0));
 		cube->material = Scene::FindMaterial("brick");
 
@@ -120,16 +158,76 @@ int main() {
 		sponza->LoadMesh(MODELS_DIR + "Sponza/sponza.obj");
 		sponza->Scale(glm::vec3(0.1, 0.1, 0.1));
 
-		window->RegisterFrameFunction(DrawFrameRate);
+		auto light1 = Scene::CreateLight<Light>();
+		light1->Translate(glm::vec3(50, 40, 0));
+		light1->SetIntensity(3.5f);
+
+		auto light2 = Scene::CreateLight<Light>();
+		light2->Translate(glm::vec3(0, 40, 0));
+		light2->SetIntensity(3.5f);
+
+		auto light3 = Scene::CreateLight<Light>();
+		light3->Translate(glm::vec3(-50, 40, 0));
+		light3->SetIntensity(3.5f);
+
+/*		auto ogre = Scene::CreateMesh("ogre");
+		ogre->SetShader("normalMapping.vert", "normalMapping.frag");
+		ogre->LoadMesh(MODELS_DIR + "ogre/bs_ears.obj");
+		ogre->Translate(glm::vec3(0, 1, 0));*/
+
+		/*auto ogre_texture = Scene::CreateTexture("ogre/texture");
+		auto ogre_normalmap = Scene::CreateTexture("ogre/normal");
+
+		ogre_texture->initFromFile(MODELS_DIR + "ogre/ogre_diffuse.png");
+		ogre_normalmap->initFromFile(MODELS_DIR + "ogre/ogre_normalmap.png");
+
+		auto mat = Scene::CreateMaterial("ogre");
+		mat->AddTexture(ogre_texture);
+		mat->normalMap = ogre_normalmap;
+		mat->shiness = 10;
+		mat->Ambient = glm::vec3(0.5, 0.5, 0.5);
+
+		ogre->material = mat;*/
 
 		/*auto spot = Scene::CreateLight<SpotLight>(glm::vec3(0, 0, 0), 2);
 		auto spot2 = Scene::CreateLight<SpotLight>(*spot);
 		spot->Translate(glm::vec3(4, 4, 0));
-		spot2->Translate(glm::vec3(-4, 4, 0));*/
+		spot2->Translate(glm::vec3(-4, 4, 0));
 
-		auto light = Scene::CreateLight<Light>();
-		light->Translate(glm::vec3(0, 6, 0));
-		light->SetIntensity(4);
+*/
+		/*auto light1 = Scene::CreateLight<Light>();
+		light1->Translate(glm::vec3(0, 0, 0));
+		light1->SetIntensity(1);*/
+
+		/*std::vector<std::shared_ptr<Light>> lights;
+
+		window->RegisterFrameFunction([&](auto &) {
+			if (ImGui::Begin("Light")) {
+				if (ImGui::Button("Add Light")) {
+					lights.push_back(Scene::CreateLight<Light>());
+				}
+
+				if (ImGui::TreeNode("Lights")) {
+					int index = 0;
+					for (auto &light : lights) {
+						if (ImGui::TreeNode((std::string("Light ") + std::to_string(index++)).c_str())) {
+							glm::vec3 pos = light->getPosition();
+							float intensity = light->GetIntensity();
+							ImGui::InputFloat3("Light Position", glm::value_ptr(pos));
+							ImGui::SliderFloat("Light Intensity", &intensity, 0, 20);
+
+							light->Translate(-light->getPosition());
+							light->Translate(pos);
+
+							light->SetIntensity(intensity);
+							ImGui::TreePop();
+						}
+					}
+					ImGui::TreePop();
+				}
+			}
+			ImGui::End();
+		});*/
 
 		/*auto light2 = Scene::CreateLight<Light>();
 		light2->Translate(glm::vec3(-4, 4, 0));
@@ -155,6 +253,9 @@ int main() {
 		silhouette->material = Scene::FindMaterial("silhouette");
 		silhouette->SetCullFaceOption(GL_FRONT);
 		silhouette->SetCustomUniform("offset", 0.01f);*/
+
+		window->RegisterFrameFunction(DrawFrameRate);
+		//window->RegisterFrameFunction(DrawHelp);
 	}
 
 	window->Run();

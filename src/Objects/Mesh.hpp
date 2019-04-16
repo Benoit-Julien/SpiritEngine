@@ -3,6 +3,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <iostream>
 
 #include "Drawable.hpp"
 #include "TriangleObject.hpp"
@@ -38,6 +39,14 @@ class Mesh : public Drawable {
 
 	virtual void EnableCulling();
 	virtual void DisableCulling();
+
+	template<typename T>
+	inline void SetCustomUniform(const std::string &varName, const T &value) {
+		for (auto &obj : this->_childObjects) obj->SetCustomUniform(varName, value);
+	}
+	void RemoveCustomUniform(const std::string &varName) {
+		for (auto &obj : this->_childObjects) obj->RemoveCustomUniform(varName);
+	}
 
  private:
 	void setup();

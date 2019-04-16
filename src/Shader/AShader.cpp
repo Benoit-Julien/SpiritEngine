@@ -84,7 +84,7 @@ void AShader::compileShader(const std::string &shaderSource) {
 	if (shaderStatus == GL_FALSE) {
 		std::cout << shaderTypeString << " compilation failed: " << getInfoLog(shaderId) << std::endl;
 	}
-#ifdef _DEBUG
+#ifdef NDEBUG
 	else {
 		std::cout << shaderTypeString << " shader compilation successful." << std::endl;
 	}

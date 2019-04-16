@@ -9,6 +9,10 @@ Movable::Movable(const ObjectType &type) : Object(type) {
 	this->_scale = glm::vec3(1, 1, 1);
 	this->_modelMatrix = glm::mat4(1.0f);
 
+	this->_translateLocked = false;
+	this->_rotateLocked = false;
+	this->_scaleLocked = false;
+
 	this->Parent = nullptr;
 }
 
@@ -20,6 +24,9 @@ Movable::Movable(const Movable &movable)
 					_rotation(movable._rotation),
 					_scale(movable._scale),
 					_modelMatrix(movable._modelMatrix),
+					_translateLocked(movable._translateLocked),
+					_rotateLocked(movable._rotateLocked),
+					_scaleLocked(movable._scaleLocked),
 					Parent(movable.Parent),
 					Children(movable.Children) {
 }
@@ -29,27 +36,42 @@ Movable &Movable::operator=(const Movable &movable) {
 	this->_rotation = movable._rotation;
 	this->_scale = movable._scale;
 	this->_modelMatrix = movable._modelMatrix;
+	this->_translateLocked = movable._translateLocked;
+	this->_rotateLocked = movable._rotateLocked;
+	this->_scaleLocked = movable._scaleLocked;
 	this->Parent = movable.Parent;
 	this->Children = movable.Children;
 	return *this;
 }
 
 void Movable::Translate(const glm::vec3 &vec) {
+	if (this->_translateLocked)
+		return;
+
 	this->_position += vec;
 	this->_modelMatrix *= glm::translate(glm::mat4(1.0f), vec);
 }
 
 void Movable::Rotate(const float &degree, const glm::vec3 &axis) {
+	if (this->_rotateLocked)
+		return;
+
 	glm::mat4 rot = glm::rotate(glm::mat4(1.0f), glm::radians(degree), axis);
 	this->Rotate(rot);
 }
 
 void Movable::Rotate(const glm::mat4 &mat) {
+	if (this->_rotateLocked)
+		return;
+
 	this->_rotation = this->_rotation * mat;
 	this->_modelMatrix = this->_modelMatrix * mat;
 }
 
 void Movable::Scale(const glm::vec3 &vec) {
+	if (this->_scaleLocked)
+		return;
+
 	this->_scale *= vec;
 	this->_modelMatrix *= glm::scale(glm::mat4(1.0f), vec);
 }
