@@ -2,6 +2,7 @@
 #define COMPUTERGRAPHICS1_SHADER_HPP
 
 #include <unordered_map>
+#include <vector>
 #include <memory>
 #include <iostream>
 #include <variant>
@@ -24,7 +25,9 @@ class ShaderProgram {
 	// Has this shader program been initialised?
 	bool _initialised;
 
-	std::unordered_map<std::string, GLint> uniforms;
+	std::unordered_map<std::string, GLint> _uniforms;
+	std::vector<std::string> _vertexSubroutine;
+	std::vector<std::string> _fragmentSubroutine;
 
  public:
 	typedef std::variant<
@@ -81,6 +84,10 @@ class ShaderProgram {
 
 	template<typename T>
 	void setUniform(const std::string &uniformName, const T &value);
+
+	void setSubroutine(const std::string &name, const GLenum &shaderType);
+
+	//GLuint addSubroutine(const std::string &name) const;
 
  private:
 	// Private method to compile/attach/link/verify the shaders.

@@ -29,7 +29,7 @@ class Scene : public Singleton<Scene> {
 	friend Singleton<Scene>;
 
  private:
-	Scene() = default;
+	Scene();
 	virtual ~Scene() = default;
 
  private:
@@ -40,6 +40,8 @@ class Scene : public Singleton<Scene> {
 	std::unordered_map<std::string, std::shared_ptr<AShader>> _shaders;
 
 	std::vector<std::pair<std::shared_ptr<Drawable>, std::chrono::time_point<std::chrono::system_clock>>> _toDestroy;
+
+	std::shared_ptr<Material> _shadowMaterial;
 
  public:
 	template<class T, typename... Args>
@@ -137,11 +139,12 @@ class Scene : public Singleton<Scene> {
 	static void BeforeDrawing();
 	static void PhysicalUpdate();
 	static void Draw(const DrawInformation &info);
+	static void DrawShadowMap();
 	//static void DrawObjectsList();
 
  private:
 	void recursiveDraw(std::shared_ptr<Drawable> obj, const DrawInformation &info, const glm::mat4 &model);
-	void setLightsToShader(std::shared_ptr<Material> material, const DrawInformation &info);
+	void recursiveShadowDraw(std::shared_ptr<Drawable> obj, const DrawInformation &info, const glm::mat4 &model);
 };
 
 #endif /* !COMPUTERGRAPHICS1_SCENE_HPP */

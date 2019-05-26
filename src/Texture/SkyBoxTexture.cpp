@@ -12,8 +12,8 @@ void SkyBoxTexture::initFromCubeMap(const std::unordered_map<Face, std::string> 
 }
 
 void SkyBoxTexture::setup() {
-	glGenTextures(1, &this->_tex_2d);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, this->_tex_2d);
+	glGenTextures(1, &this->_tex);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, this->_tex);
 
 	for (auto &map : this->_cubeMap) {
 		int channel;

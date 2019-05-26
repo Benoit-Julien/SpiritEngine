@@ -87,25 +87,26 @@ int main() {
 	Scene::LoadMaterialFile(MATERIALS_DIR + "materials.json");
 	//Scene::LoadMaterialFile(MATERIALS_DIR + "simple.json");
 	{
-		window->RegisterFrameFunction([window](DrawInformation &) {
-			static bool drawDepth = false;
-			static const char *postProcessingEffect[] = {"default", "blur", "sharpening", "greyscale", "sephia", "sobel"};
-			static int postProcessingIndex = 0;
+		auto teapot = Scene::CreateMesh("plane");
+		teapot->material = Scene::FindMaterial("plane");
+		teapot->LoadMesh(MODELS_DIR + "teapot.3ds");
+		teapot->Translate(glm::vec3(0, 2, 0));
+		teapot->Scale(glm::vec3(0.1, 0.1, 0.1));
+		teapot->Rotate(-90, glm::vec3(1, 0, 0));
 
-			if (ImGui::Begin("Post Processing")) {
-				ImGui::SetWindowSize(ImVec2(290, 80));
-				ImGui::Checkbox("Depth Map", &drawDepth);
-				ImGui::Combo("Effect", &postProcessingIndex, postProcessingEffect, IM_ARRAYSIZE(postProcessingEffect));
-			}
-			ImGui::End();
+		auto plane = Scene::CreateObject<Plane>();
+		plane->material = Scene::FindMaterial("plane");
+		plane->Scale(glm::vec3(10, 10, 10));
 
-			window->DrawDepth(drawDepth);
+		/*auto mountain = Scene::CreateMesh("mountain");
+		mountain->SetShader("textured.vert", "textured.frag");
+		mountain->LoadMesh(MODELS_DIR + "mountain/mount.blend1.obj");*/
 
-			if (postProcessingIndex == 0)
-				window->ResetPostProcessing();
-			else
-				window->SetPostProcessing(postProcessingEffect[postProcessingIndex]);
-		});
+		auto light = Scene::CreateLight<Light>();
+		light->Translate(glm::vec3(10, 10, 10));
+		light->SetIntensity(5.0f);
+
+		//window->DrawDepth(true);
 
 		/*auto skybox = Scene::CreateObject<SkyBox>();
 		skybox->material = Scene::FindMaterial("Skybox");*/
@@ -153,7 +154,27 @@ int main() {
 		mountain->SetShader("textured.vert", "textured.frag");
 		mountain->LoadMesh(MODELS_DIR + "mountain/mount.blend1.obj");*/
 
-		auto sponza = Scene::CreateMesh("sponza");
+		/*window->RegisterFrameFunction([window](DrawInformation &) {
+			static bool drawDepth = false;
+			static const char *postProcessingEffect[] = {"default", "blur", "sharpening", "greyscale", "sephia", "sobel"};
+			static int postProcessingIndex = 0;
+
+			if (ImGui::Begin("Post Processing")) {
+				ImGui::SetWindowSize(ImVec2(290, 80));
+				ImGui::Checkbox("Depth Map", &drawDepth);
+				ImGui::Combo("Effect", &postProcessingIndex, postProcessingEffect, IM_ARRAYSIZE(postProcessingEffect));
+			}
+			ImGui::End();
+
+			window->DrawDepth(drawDepth);
+
+			if (postProcessingIndex == 0)
+				window->ResetPostProcessing();
+			else
+				window->SetPostProcessing(postProcessingEffect[postProcessingIndex]);
+		});*/
+
+		/*auto sponza = Scene::CreateMesh("sponza");
 		sponza->SetShader("textured.vert", "textured.frag");
 		sponza->LoadMesh(MODELS_DIR + "Sponza/sponza.obj");
 		sponza->Scale(glm::vec3(0.1, 0.1, 0.1));
@@ -168,7 +189,7 @@ int main() {
 
 		auto light3 = Scene::CreateLight<Light>();
 		light3->Translate(glm::vec3(-50, 40, 0));
-		light3->SetIntensity(3.5f);
+		light3->SetIntensity(3.5f);*/
 
 /*		auto ogre = Scene::CreateMesh("ogre");
 		ogre->SetShader("normalMapping.vert", "normalMapping.frag");

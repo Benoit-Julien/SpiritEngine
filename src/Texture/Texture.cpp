@@ -15,11 +15,11 @@ Texture::Texture(const GLenum &type) : _type(type) {
 }
 
 Texture::~Texture() {
-	glDeleteTextures(1, &this->_tex_2d);
+	glDeleteTextures(1, &this->_tex);
 }
 
 void Texture::use() {
-	glBindTexture(this->_type, this->_tex_2d);
+	glBindTexture(this->_type, this->_tex);
 }
 
 void Texture::disable() {

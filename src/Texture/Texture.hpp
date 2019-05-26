@@ -36,7 +36,7 @@ class Texture {
 	};
 
  protected:
-	GLuint _tex_2d;
+	GLuint _tex;
 	bool _initialized;
 
  private:

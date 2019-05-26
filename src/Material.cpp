@@ -37,15 +37,15 @@ void Material::use() {
 	int index = 0;
 	if (!this->textures.empty()) {
 		for (auto &text : this->textures) {
-			glActiveTexture(GL_TEXTURE0 + index);
+			glActiveTexture(GL_TEXTURE1 + index);
 			text->use();
-			this->shader->setUniform("material.textures[" + std::to_string(index) + "]", index);
+			this->shader->setUniform("material.textures[" + std::to_string(index) + "]", index + 1);
 			index++;
 		}
-		this->shader->setUniform("material.textNumber", (unsigned int) this->textures.size());
 	}
+	this->shader->setUniform("material.textNumber", (unsigned int) this->textures.size());
 	if (this->normalMap != nullptr) {
-		glActiveTexture(GL_TEXTURE0 + index);
+		glActiveTexture(GL_TEXTURE1 + index);
 		this->normalMap->use();
 		this->shader->setUniform("material.normalTex", index);
 		index++;

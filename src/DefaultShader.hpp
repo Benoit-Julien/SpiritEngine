@@ -3,6 +3,18 @@
 
 #include <string>
 
+static const std::string default_shadow_vertex_shader =
+				"#version 410\n"
+				"layout (location = 0) in vec3 vertexPosition;// set the attr. number\n"
+				"uniform mat4 lightMVP;\n"
+				"void main() {\n"
+				"gl_Position = lightMVP * vec4(vertexPosition, 1.0);\n"
+				"}";
+
+static const std::string default_shadow_fragment_shader =
+				"#version 410\n"
+				"void main() {}";
+
 static const std::string default_vertex_shader =
 				"#version 410\n"
 				"layout (location = 0) in vec3 vertexPosition; // set the attr. number\n"

@@ -29,8 +29,8 @@ void Texture2D::setup() {
 	else if (this->_channel == 4 && this->ColorFormat == ColorFormatEnum::RGB)
 		this->ColorFormat = ColorFormatEnum::RGBA;
 
-	glGenTextures(1, &this->_tex_2d);
-	glBindTexture(GL_TEXTURE_2D, this->_tex_2d);
+	glGenTextures(1, &this->_tex);
+	glBindTexture(GL_TEXTURE_2D, this->_tex);
 
 	this->setTextureParameters();
 

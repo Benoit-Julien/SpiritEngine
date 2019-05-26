@@ -5,6 +5,9 @@
 
 PostProcessing::PostProcessing() {
 	this->setup();
+
+	this->_near = 0.1f;
+	this->_far = 100.0f;
 }
 
 PostProcessing::~PostProcessing() {
@@ -20,6 +23,8 @@ void PostProcessing::Draw(const GLuint &tex, const std::string &render) {
 	shader->use();
 	if (render.empty())
 		shader->setUniform("depth", false);
+	shader->setUniform("zNear", self->_near);
+	shader->setUniform("zFar", self->_far);
 
 	self->draw(tex);
 
@@ -31,6 +36,8 @@ void PostProcessing::DrawDepth(const GLuint &tex) {
 
 	self->_defaultShader->use();
 	self->_defaultShader->setUniform("depth", true);
+	self->_defaultShader->setUniform("zNear", self->_near);
+	self->_defaultShader->setUniform("zFar", self->_far);
 
 	self->draw(tex);
 

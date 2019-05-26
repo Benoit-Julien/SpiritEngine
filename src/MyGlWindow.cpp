@@ -42,6 +42,11 @@ MyGlWindow::MyGlWindow(const int &w, const int &h) : width(w), height(h) {
 
 	this->_postProcessingName = "";
 	this->_drawDepth = false;
+
+	this->near = 0.1f;
+	this->far = 100.0f;
+	PostProcessing::SetNear(this->near);
+	PostProcessing::SetFar(this->far);
 }
 
 MyGlWindow::~MyGlWindow() {
@@ -155,29 +160,68 @@ void MyGlWindow::draw() {
 
 	glm::mat4 projection = glm::perspective(this->_viewer->getFieldOfView(),
 																					this->_viewer->getAspectRatio(),
-																					0.1f,
-																					500.0f);
+																					this->near,
+																					this->far);
 	DrawInformation info = {view, projection, eye};
 
 	for (auto &func : this->_frameFunction)
 		func.second(info);
 
+	glBindFramebuffer(GL_FRAMEBUFFER, this->_shadowFboManager->getFboId());
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
+	glViewport(0, 0, 1024, 1024);
+
+	Scene::DrawShadowMap();
+
 	glBindFramebuffer(GL_FRAMEBUFFER, this->_fboManager->getFboId());
 	glClearColor(0.2f, 0.2f, .2f, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, this->width, this->height);
 	glEnable(GL_DEPTH_TEST);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, this->_texManager->Get("shadow_depth"));
 
 	Scene::Draw(info);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST);
+	glViewport(0, 0, this->width, this->height);
 
 	if (this->_drawDepth)
-		PostProcessing::DrawDepth(this->_texManager->Get("depth_tex"));
+		PostProcessing::DrawDepth(this->_texManager->Get("depth"));
 	else
-		PostProcessing::Draw(this->_texManager->Get("render_tex"), this->_postProcessingName);
+		PostProcessing::Draw(this->_texManager->Get("object_render"), this->_postProcessingName);
 
 	//ImGui::ShowDemoWindow();
+}
+
+void MyGlWindow::createRenderTexture() {
+	this->_texManager = std::make_shared<TextureManager>();
+
+	/*this->_texManager->CreateTexture("gPosition", this->width, this->height, GL_NEAREST, GL_RGB16F, GL_RGB, GL_FLOAT);
+	this->_texManager->CreateTexture("gNormal", this->width, this->height, GL_NEAREST, GL_RGB16F, GL_RGB, GL_FLOAT);
+	this->_texManager->CreateTexture("gAlbedo", this->width, this->height, GL_NEAREST, GL_RGB16F, GL_RGB, GL_UNSIGNED_BYTE);
+	this->_texManager->CreateTexture("gSpecular", this->width, this->height, GL_NEAREST, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);*/
+	this->_texManager->CreateTexture("object_render", this->width, this->height, GL_LINEAR, GL_RGB16F, GL_RGB, GL_FLOAT, false);
+	this->_texManager->CreateTexture("depth", this->width, this->height, GL_LINEAR, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_FLOAT, true);
+
+	this->_texManager->CreateTexture("shadow_depth", 1024, 1024, GL_LINEAR, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_FLOAT, true);
+
+	this->_fboManager = std::make_shared<FboManager>();
+	/*this->_fboManager->bindToFbo(GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->_texManager->Get("gPosition"));
+	this->_fboManager->bindToFbo(GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, this->_texManager->Get("gNormal"));
+	this->_fboManager->bindToFbo(GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, this->_texManager->Get("gAlbedo"));
+	this->_fboManager->bindToFbo(GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, this->_texManager->Get("gSpecular"));*/
+	this->_fboManager->bindToFbo(GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->_texManager->Get("object_render"));
+	this->_fboManager->bindToFbo(GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->_texManager->Get("depth"));
+
+	this->_fboManager->setDrawBuffers();
+	assert(this->_fboManager->checkFboStatus());
+
+	this->_shadowFboManager = std::make_shared<FboManager>();
+	this->_shadowFboManager->bindToFbo(GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->_texManager->Get("shadow_depth"));
 }
 
 void MyGlWindow::windowResize(int w, int h) {
@@ -186,16 +230,7 @@ void MyGlWindow::windowResize(int w, int h) {
 
 	float aspect = (w / (float) h);
 	this->_viewer->setAspectRatio(aspect);
-
-	this->_texManager->CreateTexture("render_tex", this->width, this->height, GL_NEAREST, GL_RGB, GL_RGB, false);
-	this->_texManager->CreateTexture("depth_tex", this->width, this->height, GL_LINEAR, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, true);
-
-	this->_fboManager = std::make_shared<FboManager>();
-	this->_fboManager->bindToFbo(GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->_texManager->Get("render_tex"));
-	this->_fboManager->bindToFbo(GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->_texManager->Get("depth_tex"));
-
-	this->_fboManager->setDrawBuffers();
-	assert(this->_fboManager->checkFboStatus());
+	this->createRenderTexture();
 }
 
 void MyGlWindow::initialize() {
@@ -244,16 +279,7 @@ void MyGlWindow::initialize() {
 	glfwSetScrollCallback(this->_window, genericCallback(scroll_callback));
 	glfwSetMouseButtonCallback(this->_window, genericCallback(mouse_button_callback));
 
-	this->_texManager = std::make_shared<TextureManager>();
-	this->_texManager->CreateTexture("render_tex", this->width, this->height, GL_NEAREST, GL_RGB, GL_RGB, false);
-	this->_texManager->CreateTexture("depth_tex", this->width, this->height, GL_LINEAR, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, true);
-
-	this->_fboManager = std::make_shared<FboManager>();
-	this->_fboManager->bindToFbo(GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->_texManager->Get("render_tex"));
-	this->_fboManager->bindToFbo(GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->_texManager->Get("depth_tex"));
-
-	this->_fboManager->setDrawBuffers();
-	assert(this->_fboManager->checkFboStatus());
+	this->createRenderTexture();
 
 	GLFWimage icon;
 	int channels;

@@ -25,6 +25,7 @@ class MyGlWindow {
 	GLFWwindow *_window;
 	std::shared_ptr<Viewer> _viewer;
 	std::shared_ptr<FboManager> _fboManager;
+	std::shared_ptr<FboManager> _shadowFboManager;
 	std::shared_ptr<TextureManager> _texManager;
 
 	std::unordered_map<unsigned int, std::function<void(DrawInformation &)>> _frameFunction;
@@ -38,6 +39,8 @@ class MyGlWindow {
  public:
 	int width;
 	int height;
+	float near;
+	float far;
 
  private:
 	bool _lbutton_down;
@@ -70,6 +73,7 @@ class MyGlWindow {
 	void drawingLoop();
 
 	void initialize();
+	void createRenderTexture();
 	void draw();
 
 	void key_callback(int key, int scancode, int action, int mods);

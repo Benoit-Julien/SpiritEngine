@@ -1,24 +1,25 @@
 {
   "shaders": {
     "vertexes": [
-      "silhouette.vert",
-      "simple.vert",
-      "textured.vert",
-      "normalMapping.vert",
-      "skybox.vert",
-      "cubemap.vert",
-      "refract.vert"
+      "Vertexes/silhouette.vert",
+      "Vertexes/simple.vert",
+      "Vertexes/textured.vert",
+      "Vertexes/normalMapping.vert",
+      "Vertexes/skybox.vert",
+      "Vertexes/cubemap.vert",
+      "Vertexes/refract.vert",
+      "Vertexes/GBuffer.vert"
     ],
     "fragments": [
-      "BlinnPhongShading.frag",
-      "CartoonShading.frag",
-      "PhongShading.frag",
-      "silhouette.frag",
-      "textured.frag",
-      "normalMapping.frag",
-      "skybox.frag",
-      "cubemap.frag",
-      "refract.frag"
+      "Fragments/BlinnPhongShading.frag",
+      "Fragments/CartoonShading.frag",
+      "Fragments/silhouette.frag",
+      "Fragments/textured.frag",
+      "Fragments/normalMapping.frag",
+      "Fragments/skybox.frag",
+      "Fragments/cubemap.frag",
+      "Fragments/refract.frag",
+      "Fragments/GBuffer.frag"
     ]
   },
   "post-processing": [

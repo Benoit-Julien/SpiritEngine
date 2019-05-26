@@ -21,26 +21,16 @@ void TextureManager::Add(const std::string &texture) {
 	this->_textures[texture] = tmpId;
 }
 
-void TextureManager::CreateTexture(const std::string &texture, const unsigned &w, const unsigned &h, const GLuint &filter, const GLuint &type, const GLuint &type_2, const bool &depth) {
+void TextureManager::CreateTexture(const std::string &texture, const unsigned &w, const unsigned &h, const GLuint &filter, const GLuint &internalFormat, const GLuint &format, const GLuint &type, const bool &depth) {
 	//	SDL_Surface *surface;
-	GLuint textureid;
-	int mode;
 	Add(texture);
 	glBindTexture(GL_TEXTURE_2D, this->_textures[texture]);
+	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, w, h, 0, format, type, nullptr);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
-	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	//No image data - for frameBuffer
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
-	glTexImage2D(GL_TEXTURE_2D, 0, type, w, h, 0, type_2, GL_FLOAT, 0);
-	glTexImage2D(GL_TEXTURE_2D, 0, type, w, h, 0, type_2, GL_FLOAT, 0);
 	if (depth) {
-
 		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 		//glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_LUMINANCE);

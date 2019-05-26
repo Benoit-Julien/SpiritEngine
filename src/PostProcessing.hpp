@@ -21,10 +21,19 @@ class PostProcessing : public Singleton<PostProcessing> {
 	std::shared_ptr<ShaderProgram> _defaultShader;
 	std::unordered_map<std::string, std::shared_ptr<ShaderProgram>> _postProcessingMap;
 
+	float _near;
+	float _far;
+
  public:
 	static void Draw(const GLuint &tex, const std::string &render = "");
 	static void DrawDepth(const GLuint &tex);
 	static void AddPostProcessing(const std::string &name, const std::string &vertexShader, const std::string &fragmentShader);
+
+	static inline void SetNear(const float &near) { getSingletonPtr()->_near = near; }
+	static inline void SetFar(const float &far) { getSingletonPtr()->_far = far; }
+
+	static inline const float &GetNear() { return getSingletonPtr()->_near; }
+	static inline const float &GetFar() { return getSingletonPtr()->_far; }
 
  private:
 	void setup();

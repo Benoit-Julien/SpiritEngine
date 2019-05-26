@@ -186,7 +186,10 @@ void ShaderProgram::setUniform<glm::mat4>(const std::string &uniformName, const 
 
 /**************************** std::variant ****************************/
 
-template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts>
+struct overloaded : Ts ... {
+	using Ts::operator()...;
+};
 template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 template<>
@@ -210,6 +213,17 @@ void ShaderProgram::setUniform<ShaderProgram::var_t>(const std::string &uniformN
 	}, value);
 }
 
+void ShaderProgram::setSubroutine(const std::string &name, const GLenum &shaderType) {
+	if (shaderType != GL_VERTEX_SHADER && shaderType != GL_FRAGMENT_SHADER)
+		return;
+
+	auto res = FindInVector((shaderType == GL_VERTEX_SHADER) ? this->_vertexSubroutine : this->_fragmentSubroutine, name);
+	if (!res.first)
+		return;
+	GLuint index = res.second;
+	glUniformSubroutinesuiv(shaderType, 1, &index);
+}
+
 void ShaderProgram::initialise() {
 	// Attach the compiled shaders to the shader program
 	glAttachShader(programId, this->_vertexShader->GetShaderID());
@@ -230,7 +244,7 @@ void ShaderProgram::initialise() {
 	if (programLinkSuccess == GL_TRUE)
 		std::cout << "Shader program link successful." << std::endl;
 	else
-		std::cout << "Shader program link failed: " << getInfoLog(programId) << std::endl;
+		std::cout << "Shader program link failed: " << this->_fragmentShader->GetFilename() << ": " << getInfoLog(programId) << std::endl;
 #endif
 
 	// Validate the shader program
@@ -246,6 +260,23 @@ void ShaderProgram::initialise() {
 		std::cout << "Shader program validation failed: " << getInfoLog(programId) << std::endl;
 #endif
 
+	GLint size;
+	glGetProgramStageiv(this->programId, GL_VERTEX_SHADER, GL_ACTIVE_SUBROUTINES, &size);
+
+	for (GLint i = 0; i < size; i++) {
+		GLchar name[255];
+		GLsizei nameLenght;
+		glGetActiveSubroutineName(this->programId, GL_VERTEX_SHADER, i, 255, &nameLenght, name);
+		this->_vertexSubroutine.emplace_back(name, nameLenght);
+	}
+	glGetProgramStageiv(this->programId, GL_FRAGMENT_SHADER, GL_ACTIVE_SUBROUTINES, &size);
+
+	for (GLint i = 0; i < size; i++) {
+		GLchar name[255];
+		GLsizei nameLenght;
+		glGetActiveSubroutineName(this->programId, GL_FRAGMENT_SHADER, i, 255, &nameLenght, name);
+		this->_fragmentSubroutine.emplace_back(name, nameLenght);
+	}
 	// Finally, the shader program is initialised
 	_initialised = true;
 }
@@ -268,12 +299,12 @@ std::string ShaderProgram::getInfoLog(const int &id) {
 }
 
 GLint ShaderProgram::getUniformLocation(const std::string &uniformName) {
-	auto elem = this->uniforms.find(uniformName);
-	if (elem != this->uniforms.end())
+	auto elem = this->_uniforms.find(uniformName);
+	if (elem != this->_uniforms.end())
 		return elem->second;
 
 	GLint location = glGetUniformLocation(this->programId, uniformName.c_str());
-	this->uniforms[uniformName] = location;
+	this->_uniforms[uniformName] = location;
 
 #ifdef NDEBUG
 	if (location == -1) {

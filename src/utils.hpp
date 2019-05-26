@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <algorithm>
 
 #ifdef WINDOWS
 	#include <direct.h>
@@ -112,6 +113,21 @@ static std::string JoinPath(const std::vector<std::string> &paths) {
 	for (auto &it : paths)
 		result += PATH_DELIMITER + it;
 	return CleanFilePath(result);
+}
+
+template<typename T>
+static std::pair<bool, std::size_t> FindInVector(const std::vector<T> &vec, const T &element) {
+	std::pair<bool, std::size_t> result = {false, -1};
+
+	// Find given element in vector
+	auto it = std::find(vec.begin(), vec.end(), element);
+
+	if (it != vec.end()) {
+		result.first = true;
+		result.second = std::distance(vec.begin(), it);
+	}
+
+	return result;
 }
 
 #endif /* !SPIRITENGINE_UTILS_HPP */

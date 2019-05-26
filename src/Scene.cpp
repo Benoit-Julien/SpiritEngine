@@ -2,10 +2,20 @@
 #include <iostream>
 #include <algorithm>
 #include <imgui/imgui.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "Scene.hpp"
 #include "Objects/ModelLoader.hpp"
 #include "Global.hpp"
+
+#include "DefaultShader.hpp"
+
+Scene::Scene() {
+	auto shader = std::make_shared<ShaderProgram>();
+	shader->initFromStrings(default_shadow_vertex_shader, default_shadow_fragment_shader);
+
+	this->_shadowMaterial = std::make_shared<Material>(shader);
+}
 
 std::shared_ptr<Mesh> Scene::CreateMesh(const std::string &name) {
 	auto self = Scene::getSingletonPtr();
@@ -145,6 +155,24 @@ void Scene::Draw(const DrawInformation &info) {
 			self->recursiveDraw(obj.second, info, glm::mat4(1.0f));
 	}
 }
+
+void Scene::DrawShadowMap() {
+	auto self = Scene::getSingletonPtr();
+
+	DrawInformation info{};
+
+	info.cameraPosition = glm::vec3(10, 10, 10);
+	info.projectionMatrix = glm::ortho(-25.0f, 25.0f, -25.0f, 25.0f, -20.0f, 30.0f);
+	info.viewMatrix = glm::lookAt(info.cameraPosition, glm::vec3(0, 5, 0), glm::vec3(0, 1, 0));
+	//info.viewMatrix = glm::lookAt(info.cameraPosition, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	//info.projectionMatrix = glm::ortho(-45.0f, 45.0f, -45.0f, 45.0f, 0.1f, 100.0f);
+
+	for (auto &obj : self->_objects) {
+		if (obj.second->Parent == nullptr)
+			self->recursiveShadowDraw(obj.second, info, glm::mat4(1.0f));
+	}
+}
+
 /*
 static void drawListChildren(std::shared_ptr<Drawable> parent) {
 	auto name = parent->name.c_str();
@@ -178,7 +206,6 @@ void Scene::recursiveDraw(std::shared_ptr<Drawable> obj, const DrawInformation &
 
 	glm::mat4 m = model * obj->getModelMatrix();
 	glm::mat3 n = glm::mat3(glm::transpose(glm::inverse(info.viewMatrix * m)));
-	GLuint lightNumber = this->_lights.size();
 
 	obj->Draw(ShaderVariables(m, n, info.viewMatrix, info.projectionMatrix, info.cameraPosition, this->_lights));
 
@@ -186,18 +213,19 @@ void Scene::recursiveDraw(std::shared_ptr<Drawable> obj, const DrawInformation &
 		Scene::recursiveDraw(std::dynamic_pointer_cast<Drawable>(children), info, m);
 }
 
-void Scene::setLightsToShader(std::shared_ptr<Material> material, const DrawInformation &info) {
-	unsigned int index = 0;
-	for (auto &light : this->_lights) {
-		std::string lightindex = "lights[" + std::to_string(index) + "].";
-		glm::vec3 position = glm::vec3(info.viewMatrix * light.second->getModelMatrix() * glm::vec4(0, 0, 0, 1));
+void Scene::recursiveShadowDraw(std::shared_ptr<Drawable> obj, const DrawInformation &info, const glm::mat4 &model) {
+	if (!obj)
+		return;
 
-		material->shader->setUniform(lightindex + "ambient", light.second->Ambient);
-		material->shader->setUniform(lightindex + "diffuse", light.second->Diffuse);
-		material->shader->setUniform(lightindex + "specular", light.second->Specular);
-		material->shader->setUniform(lightindex + "intensity", light.second->GetIntensity());
-		material->shader->setUniform(lightindex + "position", position);
+	glm::mat4 m = model * obj->getModelMatrix();
+	obj->SetCustomUniform("lightMVP", info.projectionMatrix * info.viewMatrix * m);
+	obj->SetCustomUniform("depth", 0);
 
-		index++;
-	}
+	auto mat = obj->material;
+	obj->material = this->_shadowMaterial;
+	obj->Draw(ShaderVariables(m, glm::mat3(1.0), info.viewMatrix, info.projectionMatrix, info.cameraPosition, {}));
+	obj->material = mat;
+
+	for (auto &children : obj->Children)
+		Scene::recursiveShadowDraw(std::dynamic_pointer_cast<Drawable>(children), info, m);
 }
