@@ -32,15 +32,10 @@ struct ShaderVariables {
 	const glm::mat4 &projectionMatrix;
 	const glm::vec3 &cameraPosition;
 
-	const unsigned int lightNumber;
-	const std::unordered_map<unsigned int, std::shared_ptr<Light>> &lights;
-
 	ShaderVariables(const glm::mat4 &m, const glm::mat3 &n, const glm::mat4 &v,
-									const glm::mat4 &p, const glm::vec3 &camPos,
-									const std::unordered_map<unsigned int, std::shared_ptr<Light>> &l)
+									const glm::mat4 &p, const glm::vec3 &camPos)
 					: modelMatrix(m), normalMatrix(n), viewMatrix(v),
-						projectionMatrix(p), lightNumber(l.size()),
-						cameraPosition(camPos), lights(l) {}
+						projectionMatrix(p), cameraPosition(camPos) {}
 };
 
 class Material {

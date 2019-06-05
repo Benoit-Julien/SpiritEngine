@@ -8,11 +8,14 @@
 #include "utils.hpp"
 #include "Scene.hpp"
 #include "Texture/Texture2D.hpp"
+#include "Shader/DefaultShader.hpp"
 
 Mesh::Mesh()
 				: Drawable(ObjectType::Model3D),
 					_drawMode(DrawMode::Shape) {
 	this->name = "Mesh";
+
+	this->_shader = std::make_shared<GBufferShader>();
 }
 
 Mesh::~Mesh() {}
@@ -21,7 +24,8 @@ Mesh::Mesh(const Mesh &model)
 				: Drawable(model),
 					_filePath(model._filePath),
 					_drawMode(model._drawMode),
-					_childObjects(model._childObjects.size()) {
+					_childObjects(model._childObjects.size()),
+					_shader(model._shader) {
 	for (std::size_t i = 0; i < model._childObjects.size(); i++)
 		this->_childObjects[i] = std::make_shared<TriangleObject>(*model._childObjects[i]);
 }
@@ -30,6 +34,7 @@ Mesh &Mesh::operator=(const Mesh &model) {
 	this->_filePath = model._filePath;
 	this->_drawMode = model._drawMode;
 	this->_childObjects = std::vector<std::shared_ptr<TriangleObject>>(model._childObjects.size());
+	this->_shader = model._shader;
 	for (std::size_t i = 0; i < model._childObjects.size(); i++)
 		this->_childObjects[i] = std::make_shared<TriangleObject>(*model._childObjects[i]);
 	return *this;

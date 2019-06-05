@@ -8,13 +8,13 @@
 #include "Objects/ModelLoader.hpp"
 #include "Global.hpp"
 
-#include "DefaultShader.hpp"
+#include "Shader/DefaultShader.hpp"
 
 Scene::Scene() {
-	auto shader = std::make_shared<ShaderProgram>();
-	shader->initFromStrings(default_shadow_vertex_shader, default_shadow_fragment_shader);
+	//auto shader = std::make_shared<ShaderProgram>();
+	//shader->initFromStrings(default_shadow_vertex_shader, default_shadow_fragment_shader);
 
-	this->_shadowMaterial = std::make_shared<Material>(shader);
+	//this->_shadowMaterial = std::make_shared<Material>(shader);
 }
 
 std::shared_ptr<Mesh> Scene::CreateMesh(const std::string &name) {
@@ -205,9 +205,9 @@ void Scene::recursiveDraw(std::shared_ptr<Drawable> obj, const DrawInformation &
 		return;
 
 	glm::mat4 m = model * obj->getModelMatrix();
-	glm::mat3 n = glm::mat3(glm::transpose(glm::inverse(info.viewMatrix * m)));
+	glm::mat3 n = glm::mat3(glm::transpose(glm::inverse(m)));
 
-	obj->Draw(ShaderVariables(m, n, info.viewMatrix, info.projectionMatrix, info.cameraPosition, this->_lights));
+	obj->Draw(ShaderVariables(m, n, info.viewMatrix, info.projectionMatrix, info.cameraPosition));
 
 	for (auto &children : obj->Children)
 		Scene::recursiveDraw(std::dynamic_pointer_cast<Drawable>(children), info, m);
@@ -223,7 +223,7 @@ void Scene::recursiveShadowDraw(std::shared_ptr<Drawable> obj, const DrawInforma
 
 	auto mat = obj->material;
 	obj->material = this->_shadowMaterial;
-	obj->Draw(ShaderVariables(m, glm::mat3(1.0), info.viewMatrix, info.projectionMatrix, info.cameraPosition, {}));
+	obj->Draw(ShaderVariables(m, glm::mat3(1.0), info.viewMatrix, info.projectionMatrix, info.cameraPosition));
 	obj->material = mat;
 
 	for (auto &children : obj->Children)

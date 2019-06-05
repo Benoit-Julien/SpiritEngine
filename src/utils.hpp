@@ -103,7 +103,6 @@ static std::string GetFileName(const std::string &filePath, const bool &extensio
 	auto dotpos = (extension) ? filePath.find_last_of('.') : std::string::npos;
 	auto deli = filePath.find_last_of(PATH_DELIMITER);
 
-	deli = (deli == std::string::npos) ? 0 : deli;
 	dotpos = (dotpos <= deli) ? std::string::npos : dotpos;
 	return filePath.substr(deli + 1, dotpos - deli - 1);
 }

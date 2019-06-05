@@ -48,7 +48,7 @@ class ShaderProgram {
 					glm::mat4> var_t;
 
  public:
-	ShaderProgram();
+	explicit ShaderProgram();
 	~ShaderProgram();
 
 	ShaderProgram(const ShaderProgram &shader) = delete;
@@ -88,6 +88,8 @@ class ShaderProgram {
 	void setSubroutine(const std::string &name, const GLenum &shaderType);
 
 	//GLuint addSubroutine(const std::string &name) const;
+
+	const GLuint &getProgramID() const { return this->programId; }
 
  private:
 	// Private method to compile/attach/link/verify the shaders.

@@ -27,12 +27,12 @@ void Drawable::RemoveCustomUniform(const std::string &varName) {
 
 void Drawable::updateShaderUniform(const ShaderVariables &variables) {
 	this->material->shader->setUniform("modelMatrix", variables.modelMatrix);
-	this->material->shader->setUniform("normalMatrix", variables.normalMatrix);
 	this->material->shader->setUniform("viewMatrix", variables.viewMatrix);
 	this->material->shader->setUniform("projectionMatrix", variables.projectionMatrix);
-	this->material->shader->setUniform("cameraPosition", variables.cameraPosition);
+	this->material->shader->setUniform("normalMatrix", variables.normalMatrix);
+	//this->material->shader->setUniform("cameraPosition", variables.cameraPosition);
 
-	unsigned int lightIndex = 0;
+	/*unsigned int lightIndex = 0;
 	for (auto &light : variables.lights) {
 		std::string lightIndexString = "lights[" + std::to_string(lightIndex) + "].";
 		glm::vec3 position = glm::vec3(variables.viewMatrix * light.second->getModelMatrix() * glm::vec4(0, 0, 0, 1));
@@ -55,7 +55,7 @@ void Drawable::updateShaderUniform(const ShaderVariables &variables) {
 		}
 		lightIndex++;
 	}
-	this->material->shader->setUniform("lightNumber", lightIndex);
+	this->material->shader->setUniform("lightNumber", lightIndex);*/
 
 	for (auto &cu : this->_customUniforms)
 		this->material->shader->setUniform(cu.first, cu.second);

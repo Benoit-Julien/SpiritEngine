@@ -124,6 +124,7 @@ class Scene : public Singleton<Scene> {
 
 	static void RemoveLight(const unsigned int &ID);
 	static std::shared_ptr<Light> FindLight(const unsigned int &ID);
+	inline static std::unordered_map<unsigned int, std::shared_ptr<Light>> GetLights() { return getSingletonPtr()->_lights; }
 
 	template<typename T>
 	static std::shared_ptr<T> FindShader(const std::string &name) {

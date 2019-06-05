@@ -1,3 +1,4 @@
+R"=====(
 #version 410
 
 layout (location = 0) in vec3 vertexPosition;// set the attr. number
@@ -20,3 +21,4 @@ void main() {
     fPosition = pos.xyz;
     gl_Position = projectionMatrix * viewMatrix * pos;
 }
+)=====";

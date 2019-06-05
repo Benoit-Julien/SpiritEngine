@@ -49,6 +49,7 @@ set(SOURCES
         src/Scene.cpp
         src/Material.cpp
         src/utils.cpp
+        src/DeferredShading.cpp
         src/FBO/FboManager.cpp
         src/FBO/TextureManager.cpp
         src/PostProcessing.cpp
@@ -58,6 +59,7 @@ set(SOURCES
         src/FileLoader/MaterialsFileLoader.cpp
         src/FileLoader/TexturesFileLoader.cpp
         src/FileLoader/ShadersFileLoader.cpp
+        src/Shader/DefaultShader.cpp
         src/Shader/ShaderProgram.cpp
         src/Shader/AShader.cpp
         src/Shader/VertexShader.cpp

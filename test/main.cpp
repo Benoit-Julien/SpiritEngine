@@ -17,6 +17,7 @@
 #include <iostream>
 #include <string>
 #include <PostProcessing.hpp>
+#include <DeferredShading.hpp>
 
 static int width = 1280;
 static int height = 720;
@@ -85,17 +86,17 @@ int main() {
 	Scene::LoadShaderFile(SHADERS_DIR + "shaders.json");
 	Scene::LoadTextureFile(TEXTURES_DIR + "textures.json");
 	Scene::LoadMaterialFile(MATERIALS_DIR + "materials.json");
-	//Scene::LoadMaterialFile(MATERIALS_DIR + "simple.json");
+	Scene::LoadMaterialFile(MATERIALS_DIR + "simple.json");
 	{
-		auto teapot = Scene::CreateMesh("plane");
-		teapot->material = Scene::FindMaterial("plane");
+		auto teapot = Scene::CreateMesh("teapot");
+		teapot->material = Scene::FindMaterial("ruby");
 		teapot->LoadMesh(MODELS_DIR + "teapot.3ds");
 		teapot->Translate(glm::vec3(0, 2, 0));
 		teapot->Scale(glm::vec3(0.1, 0.1, 0.1));
 		teapot->Rotate(-90, glm::vec3(1, 0, 0));
 
 		auto plane = Scene::CreateObject<Plane>();
-		plane->material = Scene::FindMaterial("plane");
+		plane->material = Scene::FindMaterial("pearl");
 		plane->Scale(glm::vec3(10, 10, 10));
 
 		/*auto mountain = Scene::CreateMesh("mountain");
@@ -103,8 +104,29 @@ int main() {
 		mountain->LoadMesh(MODELS_DIR + "mountain/mount.blend1.obj");*/
 
 		auto light = Scene::CreateLight<Light>();
-		light->Translate(glm::vec3(10, 10, 10));
-		light->SetIntensity(5.0f);
+		light->Translate(glm::vec3(5, 1, 5));
+		light->Diffuse = glm::vec3(1, 0, 0);
+		light->Specular = glm::vec3(1, 0, 0);
+		light->Diffuse = glm::vec3(1, 0, 0);
+		light->UpdateLightVolume();
+
+		auto light2 = Scene::CreateLight<Light>();
+		light2->Translate(glm::vec3(-5, 1, 5));
+		light2->Diffuse = glm::vec3(0, 1, 0);
+		light2->Specular = glm::vec3(0, 1, 0);
+		light2->Ambient = glm::vec3(0, 1, 0);
+		light2->UpdateLightVolume();
+
+		auto light3 = Scene::CreateLight<Light>();
+		light3->Translate(glm::vec3(5, 1, -5));
+		light3->Diffuse = glm::vec3(0, 0, 1);
+		light3->Specular = glm::vec3(0, 0, 1);
+		light3->Ambient = glm::vec3(0, 0, 1);
+		light3->UpdateLightVolume();
+
+		auto light4 = Scene::CreateLight<Light>();
+		light4->Translate(glm::vec3(-5, 1, -5));
+		light4->UpdateLightVolume();
 
 		//window->DrawDepth(true);
 
@@ -175,21 +197,20 @@ int main() {
 		});*/
 
 		/*auto sponza = Scene::CreateMesh("sponza");
-		sponza->SetShader("textured.vert", "textured.frag");
 		sponza->LoadMesh(MODELS_DIR + "Sponza/sponza.obj");
-		sponza->Scale(glm::vec3(0.1, 0.1, 0.1));
+		sponza->Scale(glm::vec3(0.1, 0.1, 0.1));*/
 
-		auto light1 = Scene::CreateLight<Light>();
+		/*auto light1 = Scene::CreateLight<Light>();
 		light1->Translate(glm::vec3(50, 40, 0));
-		light1->SetIntensity(3.5f);
+		light1->SetIntensity(10);
 
 		auto light2 = Scene::CreateLight<Light>();
 		light2->Translate(glm::vec3(0, 40, 0));
-		light2->SetIntensity(3.5f);
+		light2->SetIntensity(10);
 
 		auto light3 = Scene::CreateLight<Light>();
 		light3->Translate(glm::vec3(-50, 40, 0));
-		light3->SetIntensity(3.5f);*/
+		light3->SetIntensity(10);*/
 
 /*		auto ogre = Scene::CreateMesh("ogre");
 		ogre->SetShader("normalMapping.vert", "normalMapping.frag");

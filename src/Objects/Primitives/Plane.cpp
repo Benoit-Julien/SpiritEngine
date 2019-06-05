@@ -30,6 +30,13 @@ void Plane::setupVertices() {
 					up
 	};
 
+	this->uvs = std::vector<glm::vec2>{
+					glm::vec2(0.0f, 1.0f),
+					glm::vec2(1.0f, 1.0f),
+					glm::vec2(1.0f, 0.0f),
+					glm::vec2(0.0f, 0.0f)
+	};
+
 	this->triangles = std::vector<TriangleIndex>{
 					{0, 1, 2},
 					{0, 2, 3}

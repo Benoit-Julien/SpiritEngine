@@ -1,3 +1,4 @@
+R"=====(
 #version 410
 
 struct Material {
@@ -24,8 +25,7 @@ uniform Material material;
 
 void main()
 {
-    vec4 texColor = vec4(1, 1, 1, 1);
-    texColor = texture(material.diffuseTexture, fTexCoord);
+    vec4 texColor = material.hasDiffuseTexture ? texture(material.diffuseTexture, fTexCoord) : vec4(1, 1, 1, 1);
     if (texColor.a < 0.1) discard;
 
     // store the fragment position vector in the first gbuffer texture
@@ -38,3 +38,4 @@ void main()
 
     gSpecular = vec4(material.specular, material.shiness);
 }
+)=====";

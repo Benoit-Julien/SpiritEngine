@@ -7,8 +7,7 @@
       "Vertexes/normalMapping.vert",
       "Vertexes/skybox.vert",
       "Vertexes/cubemap.vert",
-      "Vertexes/refract.vert",
-      "Vertexes/GBuffer.vert"
+      "Vertexes/refract.vert"
     ],
     "fragments": [
       "Fragments/BlinnPhongShading.frag",
@@ -18,8 +17,7 @@
       "Fragments/normalMapping.frag",
       "Fragments/skybox.frag",
       "Fragments/cubemap.frag",
-      "Fragments/refract.frag",
-      "Fragments/GBuffer.frag"
+      "Fragments/refract.frag"
     ]
   },
   "post-processing": [

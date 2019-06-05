@@ -1,5 +1,9 @@
 #include "Light.hpp"
 
+float Light::Constant = 1.0f;
+float Light::Linear = 0.1f;
+float Light::Quadratic = 0.01f;
+
 Light::Light(const float &intensity) : Movable(ObjectType::Light) {
 	this->_intensity = intensity;
 
@@ -25,4 +29,11 @@ Light &Light::operator=(const Light &light) {
 	this->Diffuse = light.Diffuse;
 	this->Specular = light.Specular;
 	return *this;
+}
+
+void Light::UpdateLightVolume() {
+	float lightMax = std::fmaxf(std::fmaxf(this->Diffuse.r, this->Diffuse.g), this->Diffuse.b);
+	this->_radius = (-Light::Linear + std::sqrtf(Light::Linear * Light::Linear - 4 * Light::Quadratic * Light::Constant - (256.0 / 5.0) * lightMax))
+					/ (2 * Light::Quadratic);
+	this->_radius *= this->_intensity;
 }

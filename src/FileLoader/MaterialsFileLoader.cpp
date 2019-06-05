@@ -1,18 +1,29 @@
 #include "MaterialsFileLoader.hpp"
 #include "Scene.hpp"
+#include "Shader/DefaultShader.hpp"
 
 void MaterialsFileLoader::FileTreatment(const rapidjson::Document &document, const std::string &fileDirectory) {
 	assert(document.HasMember("materials") && document["materials"].IsArray());
 	for (auto &material : document["materials"].GetArray()) {
 		assert(material.IsObject());
 		assert(material.HasMember("name") && material["name"].IsString());
-		assert(material.HasMember("vertex") && material["vertex"].IsString());
-		assert(material.HasMember("fragment") && material["fragment"].IsString());
 
-		std::string vertexShader = material["vertex"].GetString();
-		std::string fragmentShader = material["fragment"].GetString();
+		std::shared_ptr<ShaderProgram> shader;
+		if (material.HasMember("shader")) {
+			assert(material["shader"].IsObject());
+			assert(material["shader"].HasMember("vertex") && material["vertex"].IsString());
+			assert(material["shader"].HasMember("fragment") && material["fragment"].IsString());
 
-		auto mat = Scene::CreateMaterial(material["name"].GetString(), vertexShader, fragmentShader);
+			std::string vertexShader = material["shader"]["vertex"].GetString();
+			std::string fragmentShader = material["shader"]["fragment"].GetString();
+
+			shader = std::make_shared<ShaderProgram>();
+			shader->initFromFiles(vertexShader, fragmentShader);
+		}
+		else
+			shader = std::make_shared<GBufferShader>();
+
+		auto mat = Scene::CreateMaterial(material["name"].GetString(), shader);
 
 		if (material.HasMember("diffuse"))
 			mat->Diffuse = getColor(material["diffuse"]);

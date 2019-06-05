@@ -11,9 +11,6 @@
 #include "Viewer.h"
 #include "Scene.hpp"
 
-#include "FBO/FboManager.hpp"
-#include "FBO/TextureManager.hpp"
-
 #define genericCallback(functionName)\
         [](GLFWwindow* window, auto... args) {\
             auto pointer = static_cast<MyGlWindow*>(glfwGetWindowUserPointer(window));\
@@ -24,9 +21,6 @@ class MyGlWindow {
  private:
 	GLFWwindow *_window;
 	std::shared_ptr<Viewer> _viewer;
-	std::shared_ptr<FboManager> _fboManager;
-	std::shared_ptr<FboManager> _shadowFboManager;
-	std::shared_ptr<TextureManager> _texManager;
 
 	std::unordered_map<unsigned int, std::function<void(DrawInformation &)>> _frameFunction;
 	std::unordered_map<unsigned int, std::function<void()>> _physicalUpdateFunction;
@@ -73,7 +67,6 @@ class MyGlWindow {
 	void drawingLoop();
 
 	void initialize();
-	void createRenderTexture();
 	void draw();
 
 	void key_callback(int key, int scancode, int action, int mods);

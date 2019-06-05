@@ -311,7 +311,7 @@ GLint ShaderProgram::getUniformLocation(const std::string &uniformName) {
 		std::cout << "Could not add uniform: " << uniformName << " - location returned -1." << std::endl;
 		return -1;
 	}
-	std::cout << "Uniform " << uniformName << " bound to location: " << location << std::endl;
+	std::cout << "Shader {" << this->programId << "}: Uniform " << uniformName << " bound to location: " << location << std::endl;
 #endif
 	return location;
 }

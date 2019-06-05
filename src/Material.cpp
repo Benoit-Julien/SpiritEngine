@@ -1,12 +1,11 @@
 #include <algorithm>
 
 #include "Material.hpp"
-#include "DefaultShader.hpp"
 #include "Scene.hpp"
 
 Material::Material() {
-	this->shader = std::make_shared<ShaderProgram>();
-	this->shader->initFromStrings(default_vertex_shader, default_fragment_shader);
+	//this->shader = std::make_shared<ShaderProgram>();
+	//this->shader->initFromStrings(default_vertex_shader, default_fragment_shader);
 
 	this->initialize();
 }
@@ -34,7 +33,13 @@ void Material::use() {
 	this->shader->setUniform("material.specular", this->Specular);
 	this->shader->setUniform("material.shiness", this->shiness);
 
-	int index = 0;
+	this->shader->setUniform("material.hasDiffuseTexture", !this->textures.empty());
+	if (!this->textures.empty()) {
+		glActiveTexture(GL_TEXTURE0);
+		this->textures.front()->use();
+		this->shader->setUniform("material.diffuseTexture", 0);
+	}
+	/*int index = 0;
 	if (!this->textures.empty()) {
 		for (auto &text : this->textures) {
 			glActiveTexture(GL_TEXTURE1 + index);
@@ -49,7 +54,7 @@ void Material::use() {
 		this->normalMap->use();
 		this->shader->setUniform("material.normalTex", index);
 		index++;
-	}
+	}*/
 }
 
 void Material::disable() {

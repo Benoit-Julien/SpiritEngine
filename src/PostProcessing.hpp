@@ -1,7 +1,9 @@
 #ifndef SPIRITENGINE_POST_PROCESSING_HPP
 #define SPIRITENGINE_POST_PROCESSING_HPP
 
-#include <unordered_map>
+#include <vector>
+#include <functional>
+#include <utility>
 
 #include <glad/glad.h>
 
@@ -25,7 +27,13 @@ class PostProcessing : public Singleton<PostProcessing> {
 	float _far;
 
  public:
-	static void Draw(const GLuint &tex, const std::string &render = "");
+	static void Draw(const GLuint &tex);
+	static void Draw(const GLuint &tex, const std::string &render);
+	static void Draw(const std::vector<std::pair<std::string, GLuint>> &texs, const std::string &render);
+	static void Draw(const std::vector<std::pair<std::string, GLuint>> &texs,
+					const std::string &render,
+					const std::function<void(std::shared_ptr<ShaderProgram> shader)> &uniformUpdate);
+
 	static void DrawDepth(const GLuint &tex);
 	static void AddPostProcessing(const std::string &name, const std::string &vertexShader, const std::string &fragmentShader);
 
@@ -37,7 +45,8 @@ class PostProcessing : public Singleton<PostProcessing> {
 
  private:
 	void setup();
-	void draw(const GLuint &tex);
+	void draw();
+	void setTexture(const GLuint &tex, const GLuint &index);
 };
 
 #endif /* !SPIRITENGINE_POST_PROCESSING_HPP */
