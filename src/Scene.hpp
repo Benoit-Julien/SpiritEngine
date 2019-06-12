@@ -11,13 +11,12 @@
 #include "Objects/Drawable.hpp"
 #include "Objects/Lights/Light.hpp"
 #include "Objects/Lights/SpotLight.hpp"
+#include "Objects/Lights/DirectionalLight.hpp"
 #include "Objects/Mesh.hpp"
 
 #include "FileLoader/MaterialsFileLoader.hpp"
 #include "FileLoader/TexturesFileLoader.hpp"
 #include "FileLoader/ShadersFileLoader.hpp"
-
-#define MAX_LIGHTS 32
 
 struct DrawInformation {
 	glm::mat4 viewMatrix;
@@ -29,7 +28,7 @@ class Scene : public Singleton<Scene> {
 	friend Singleton<Scene>;
 
  private:
-	Scene();
+	explicit Scene();
 	virtual ~Scene() = default;
 
  private:
@@ -37,6 +36,7 @@ class Scene : public Singleton<Scene> {
 	std::unordered_map<std::string, std::shared_ptr<Material>> _materials;
 	std::unordered_map<std::string, std::shared_ptr<Texture>> _textures;
 	std::unordered_map<unsigned int, std::shared_ptr<Light>> _lights;
+	std::shared_ptr<DirectionalLight> _dirLight;
 	std::unordered_map<std::string, std::shared_ptr<AShader>> _shaders;
 
 	std::vector<std::pair<std::shared_ptr<Drawable>, std::chrono::time_point<std::chrono::system_clock>>> _toDestroy;
@@ -45,7 +45,7 @@ class Scene : public Singleton<Scene> {
 
  public:
 	template<class T, typename... Args>
-	static std::shared_ptr<T> CreateObject(const Args& ...args) {
+	static std::shared_ptr<T> CreateObject(const Args &...args) {
 		auto self = Scene::getSingletonPtr();
 
 		auto obj = std::make_shared<T>(args...);
@@ -56,7 +56,7 @@ class Scene : public Singleton<Scene> {
 	static std::shared_ptr<Mesh> CreateMesh(const std::string &name);
 
 	template<typename... Args>
-	static std::shared_ptr<Material> CreateMaterial(const std::string &name, const Args& ...args) {
+	static std::shared_ptr<Material> CreateMaterial(const std::string &name, const Args &...args) {
 		auto self = Scene::getSingletonPtr();
 
 		auto elem = self->_materials.find(name);
@@ -69,7 +69,7 @@ class Scene : public Singleton<Scene> {
 	}
 
 	template<class T, typename... Args>
-	static std::shared_ptr<T> CreateTexture(const std::string &name, const Args& ...args) {
+	static std::shared_ptr<T> CreateTexture(const std::string &name, const Args &...args) {
 		auto self = Scene::getSingletonPtr();
 
 		auto elem = self->_textures.find(name);
@@ -82,15 +82,30 @@ class Scene : public Singleton<Scene> {
 	}
 
 	template<class T, typename... Args>
-	static std::shared_ptr<T> CreateLight(const Args& ...args) {
+	static std::shared_ptr<T> CreateLight(const Args &...args) {
 		auto self = Scene::getSingletonPtr();
-
-		if (self->_lights.size() == MAX_LIGHTS * 2)
-			return nullptr;
 
 		auto light = std::make_shared<T>(args...);
 		self->_lights[light->getObjectID()] = light;
 		return light;
+	}
+
+	static std::shared_ptr<DirectionalLight> CreateDirectionalLight() {
+		auto self = Scene::getSingletonPtr();
+
+		self->_dirLight = std::make_shared<DirectionalLight>();
+		return self->_dirLight;
+	}
+
+	static void DestroyDirectionalLight() {
+		auto self = Scene::getSingletonPtr();
+
+		self->_dirLight.reset();
+		self->_dirLight = nullptr;
+	}
+
+	static std::shared_ptr<DirectionalLight> GetDirectionLight() {
+		return Scene::getSingleton()._dirLight;
 	}
 
 	template<typename T>
@@ -116,15 +131,18 @@ class Scene : public Singleton<Scene> {
 
 	static void RemoveMaterial(const std::string &name);
 	static std::shared_ptr<Material> FindMaterial(const std::string &name);
-	inline static void LoadMaterialFile(const std::string &filename) { MaterialsFileLoader::LoadFile(filename); }
+
+	static void LoadMaterialFile(const std::string &filename) { MaterialsFileLoader::LoadFile(filename); }
 
 	static void RemoveTexture(const std::string &name);
 	static std::shared_ptr<Texture> FindTexture(const std::string &name);
-	inline static void LoadTextureFile(const std::string &filename) { TexturesFileLoader::LoadFile(filename); }
+
+	static void LoadTextureFile(const std::string &filename) { TexturesFileLoader::LoadFile(filename); }
 
 	static void RemoveLight(const unsigned int &ID);
 	static std::shared_ptr<Light> FindLight(const unsigned int &ID);
-	inline static std::unordered_map<unsigned int, std::shared_ptr<Light>> GetLights() { return getSingletonPtr()->_lights; }
+
+	static const std::unordered_map<unsigned int, std::shared_ptr<Light>> &GetLights() { return getSingletonPtr()->_lights; }
 
 	template<typename T>
 	static std::shared_ptr<T> FindShader(const std::string &name) {
@@ -135,7 +153,8 @@ class Scene : public Singleton<Scene> {
 			return std::dynamic_pointer_cast<T>(elem->second);
 		return nullptr;
 	}
-	inline static void LoadShaderFile(const std::string &filename) { ShaderFileLoader::LoadFile(filename); }
+
+	static void LoadShaderFile(const std::string &filename) { ShaderFileLoader::LoadFile(filename); }
 
 	static void BeforeDrawing();
 	static void PhysicalUpdate();

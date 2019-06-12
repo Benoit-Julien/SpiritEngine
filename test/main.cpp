@@ -1,21 +1,17 @@
 #include <imgui/imgui.h>
+#include <glm/gtc/type_ptr.hpp>
+
+#include <iostream>
+#include <random>
+#include <string>
 
 #include <MyGlWindow.hpp>
 #include <Scene.hpp>
 
-#include <Objects/Primitives/Cube.hpp>
-#include <Objects/Primitives/Sphere.hpp>
-#include <Objects/Primitives/Plane.hpp>
-#include <Objects/Primitives/SkyBox.hpp>
 #include <Objects/Mesh.hpp>
-
 #include <Objects/Lights/Light.hpp>
 #include <Objects/Lights/SpotLight.hpp>
 
-#include <glm/gtc/type_ptr.hpp>
-
-#include <iostream>
-#include <string>
 #include <PostProcessing.hpp>
 #include <DeferredShading.hpp>
 
@@ -57,9 +53,6 @@ static void DrawHelp(DrawInformation &) {
 	ImGui::End();
 }
 
-//#define GLM_ENABLE_EXPERIMENTAL
-//#include <glm/gtx/string_cast.hpp>
-
 static auto chrono = std::chrono::system_clock::now() + std::chrono::milliseconds(250);
 static int counter = 0;
 
@@ -80,6 +73,148 @@ static void DrawFrameRate(DrawInformation &) {
 	ImGui::End();
 }
 
+static void DirectionalLightInfo() {
+	if (!Scene::GetDirectionLight() && ImGui::Button("Create"))
+		Scene::CreateDirectionalLight();
+	else if (Scene::GetDirectionLight() && ImGui::Button("Destroy"))
+		Scene::DestroyDirectionalLight();
+
+	if (Scene::GetDirectionLight()) {
+		static glm::vec3 euler;
+		static float minIntensity = 0;
+
+		if (ImGui::DragFloat2("Rotation", &euler.x))
+			Scene::GetDirectionLight()->SetEulerAngles(glm::radians(euler));
+
+		ImGui::ColorEdit3("Ambient", &Scene::GetDirectionLight()->Ambient.x);
+		ImGui::ColorEdit3("Diffuse", &Scene::GetDirectionLight()->Diffuse.x);
+		ImGui::ColorEdit3("Specular", &Scene::GetDirectionLight()->Specular.x);
+		ImGui::DragScalar("Intensity", ImGuiDataType_Float, &Scene::GetDirectionLight()->Intensity, 0.01f, &minIntensity, nullptr, "%.3f");
+	}
+}
+
+static void SpotLightInfo() {
+	static std::vector<std::pair<std::shared_ptr<SpotLight>, glm::vec3>> spots;
+	static float minIntensity = 0;
+
+	int index = 0;
+	std::vector<std::pair<int, std::shared_ptr<SpotLight>>> toDelete;
+	for (auto light : spots)
+	{
+		if (ImGui::TreeNode((void*)(intptr_t)light.first->getObjectID(), "Spot %d", index))
+		{
+			ImGui::DragFloat3("Position", &light.first->GetPosition().x);
+
+			if (ImGui::DragFloat3("Rotation", &light.second.x))
+				light.first->SetEulerAngles(glm::radians(light.second));
+
+			ImGui::ColorEdit3("Ambient", &light.first->Ambient.x);
+			ImGui::ColorEdit3("Diffuse", &light.first->Diffuse.x);
+			ImGui::ColorEdit3("Specular", &light.first->Specular.x);
+			ImGui::DragScalar("Intensity", ImGuiDataType_Float, &light.first->Intensity, 0.01f, &minIntensity, nullptr, "%.3f");
+
+			ImGui::DragFloat("Cutoff", &light.first->Cutoff, 0.1f);
+			ImGui::DragFloat("InnerCutoff", &light.first->InnerCutoff, 0.1f);
+			ImGui::DragFloat("Exponent", &light.first->Exponent, 0.1f);
+
+			if (ImGui::Button("Remove"))
+				toDelete.emplace_back(index, light.first);
+
+			ImGui::TreePop();
+		}
+		index++;
+	}
+
+	if (ImGui::Button("Create")) {
+		spots.emplace_back(Scene::CreateLight<SpotLight>(), glm::vec3(0, 0, 0));
+	}
+
+	for (auto light : toDelete) {
+		spots.erase(spots.begin()+light.first);
+		Scene::RemoveLight(light.second->getObjectID());
+	}
+}
+
+static void PointLightInfo(std::shared_ptr<Mesh> mountain) {
+	static int lightNb = 0;
+	static int minLightNb = 0;
+	static std::random_device rd;
+
+	if (ImGui::DragScalar("Light Number", ImGuiDataType_S32, &lightNb, .1f, &minLightNb, nullptr, "%d")) {
+		auto lights = Scene::GetLights();
+
+		int diff = lightNb - lights.size();
+		if (diff < 0) {
+			std::vector<unsigned int> toDelete;
+
+			auto it = lights.cbegin();
+			for (auto i = 0; i < lights.size() + diff; i++, ++it);
+			for (; it != lights.cend(); ++it)
+				toDelete.push_back(it->first);
+			for (auto &l : toDelete)
+				Scene::RemoveLight(l);
+		}
+		else {
+			for (auto i = 0; i < diff; i++) {
+				auto newLight = Scene::CreateLight<Light>();
+				auto mesh = std::dynamic_pointer_cast<TriangleObject>(mountain->Children.front());
+
+				auto vertIndex = rd() % mesh->vertices.size();
+
+				newLight->SetPosition(mesh->vertices[vertIndex] + mesh->normals[vertIndex]);
+
+				auto color = glm::vec3(rd() % 255, rd() % 255, rd() % 255);
+				newLight->Diffuse = color;
+				newLight->Ambient = color * 0.01f;
+				newLight->Intensity = 0.01f;
+				newLight->SetParent(mountain);
+				newLight->UpdateLightVolume();
+			}
+		}
+	}
+}
+
+static void LightingInfo(std::shared_ptr<Mesh> mountain, DrawInformation &) {
+	if (ImGui::Begin("Lighting")) {
+		if (ImGui::CollapsingHeader("Directional")) DirectionalLightInfo();
+
+		ImGui::Spacing();
+		if (ImGui::CollapsingHeader("Point")) PointLightInfo(mountain);
+
+		ImGui::Spacing();
+		if (ImGui::CollapsingHeader("Spot")) SpotLightInfo();
+	}
+	ImGui::End();
+}
+
+static void DrawingInfo(std::shared_ptr<MyGlWindow> window, DrawInformation &) {
+	static bool drawDepth = false;
+	static const char *postProcessingEffect[] = {"default", "blur", "sharpening", "greyscale", "sephia", "sobel"};
+	static const char *gBuffer[] = {"default", "gPosition", "gNormal", "gAmbientAlbedo", "gDiffuseAlbedo", "gSpecular"};
+	static int postProcessingIndex = 0;
+	static int gBufferIndex;
+
+	if (ImGui::Begin("Post Processing")) {
+		ImGui::SetWindowSize(ImVec2(290, 120));
+		ImGui::Checkbox("Depth Map", &drawDepth);
+		ImGui::Combo("Effect", &postProcessingIndex, postProcessingEffect, IM_ARRAYSIZE(postProcessingEffect));
+		ImGui::Combo("Buffer", &gBufferIndex, gBuffer, IM_ARRAYSIZE(gBuffer));
+	}
+	ImGui::End();
+
+	window->DrawDepth(drawDepth);
+
+	if (postProcessingIndex == 0)
+		window->ResetPostProcessing();
+	else
+		window->SetPostProcessing(postProcessingEffect[postProcessingIndex]);
+
+	if (gBufferIndex == 0)
+		window->SetDrawBuffer("deferredRender");
+	else
+		window->SetDrawBuffer(gBuffer[gBufferIndex]);
+}
+
 int main() {
 	auto window = std::make_shared<MyGlWindow>(width, height);
 
@@ -88,216 +223,25 @@ int main() {
 	Scene::LoadMaterialFile(MATERIALS_DIR + "materials.json");
 	Scene::LoadMaterialFile(MATERIALS_DIR + "simple.json");
 	{
-		auto teapot = Scene::CreateMesh("teapot");
-		teapot->material = Scene::FindMaterial("ruby");
-		teapot->LoadMesh(MODELS_DIR + "teapot.3ds");
-		teapot->Translate(glm::vec3(0, 2, 0));
-		teapot->Scale(glm::vec3(0.1, 0.1, 0.1));
-		teapot->Rotate(-90, glm::vec3(1, 0, 0));
+		auto mountain = Scene::CreateMesh("mountain");
+		mountain->LoadMesh(MODELS_DIR + "mountain/mount.blend1.obj");
+		mountain->Scale(glm::vec3(40, 20, 40));
+		window->RegisterPhysicalUpdateFunction([mountain]() {
+			static glm::vec3 rot;
 
-		auto plane = Scene::CreateObject<Plane>();
-		plane->material = Scene::FindMaterial("pearl");
-		plane->Scale(glm::vec3(10, 10, 10));
-
-		/*auto mountain = Scene::CreateMesh("mountain");
-		mountain->SetShader("textured.vert", "textured.frag");
-		mountain->LoadMesh(MODELS_DIR + "mountain/mount.blend1.obj");*/
-
-		auto light = Scene::CreateLight<Light>();
-		light->Translate(glm::vec3(5, 1, 5));
-		light->Diffuse = glm::vec3(1, 0, 0);
-		light->Specular = glm::vec3(1, 0, 0);
-		light->Diffuse = glm::vec3(1, 0, 0);
-		light->UpdateLightVolume();
-
-		auto light2 = Scene::CreateLight<Light>();
-		light2->Translate(glm::vec3(-5, 1, 5));
-		light2->Diffuse = glm::vec3(0, 1, 0);
-		light2->Specular = glm::vec3(0, 1, 0);
-		light2->Ambient = glm::vec3(0, 1, 0);
-		light2->UpdateLightVolume();
-
-		auto light3 = Scene::CreateLight<Light>();
-		light3->Translate(glm::vec3(5, 1, -5));
-		light3->Diffuse = glm::vec3(0, 0, 1);
-		light3->Specular = glm::vec3(0, 0, 1);
-		light3->Ambient = glm::vec3(0, 0, 1);
-		light3->UpdateLightVolume();
-
-		auto light4 = Scene::CreateLight<Light>();
-		light4->Translate(glm::vec3(-5, 1, -5));
-		light4->UpdateLightVolume();
-
-		//window->DrawDepth(true);
-
-		/*auto skybox = Scene::CreateObject<SkyBox>();
-		skybox->material = Scene::FindMaterial("Skybox");*/
-
-		/*auto teapot = Scene::CreateMesh("teapot");
-		teapot->material = Scene::FindMaterial("Cubemap");
-		teapot->LoadMesh(MODELS_DIR + "teapot.3ds");
-		teapot->SetCustomUniform("material.color", glm::vec4(0.4f, 0.4f, 0.4f, 1.0f));
-		teapot->SetCustomUniform("material.reflectFactor", 0.85f);
-		teapot->Scale(glm::vec3(0.1, 0.1, 0.1));
-		teapot->Rotate(-90, glm::vec3(1, 0, 0));*/
-
-		/*auto teapot = Scene::CreateMesh("teapot");
-		teapot->material = Scene::FindMaterial("Refraction");
-		teapot->LoadMesh(MODELS_DIR + "teapot.3ds");
-		//teapot->SetCustomUniform("material.reflectFactor", 0.1f);
-		teapot->SetCustomUniform("EtaR", 0.65f);
-		teapot->SetCustomUniform("EtaG", 0.67f);
-		teapot->SetCustomUniform("EtaB", 0.69f);
-		teapot->Scale(glm::vec3(0.1, 0.1, 0.1));
-		teapot->Rotate(-90, glm::vec3(1, 0, 0));*/
-
-		/*auto plane = Scene::CreateObject<Plane>();
-		plane->material = Scene::FindMaterial("plane");
-		plane->Scale(glm::vec3(1000, 1, 1000));*/
-		/*plane->SetCustomUniform("fogColor", glm::vec3(0.5, 0.5, 0.5));
-		plane->SetCustomUniform("minDist", 0.1f);
-		plane->SetCustomUniform("maxDist", 10.0f);*/
-
-		/*auto cube = Scene::CreateObject<Cube>();
-		cube->Translate(glm::vec3(3, 1.5, 0));
-		cube->material = Scene::FindMaterial("brick");
-
-		auto world = Scene::CreateObject<Sphere>(1, 48, 32);
-		world->Translate(glm::vec3(0, 2, 0));
-		world->Rotate(180, glm::vec3(1, 0, 0));
-		world->material = Scene::FindMaterial("earth");
-
-
-		window->RegisterPhysicalUpdateFunction([world]() {
-			world->Rotate(0.0001, glm::vec3(0, 1, 0));
+			rot.y += 0.0001f;
+			mountain->SetEulerAngles(rot);
 		});
-*/
-		/*auto mountain = Scene::CreateMesh("mountain");
-		mountain->SetShader("textured.vert", "textured.frag");
-		mountain->LoadMesh(MODELS_DIR + "mountain/mount.blend1.obj");*/
-
-		/*window->RegisterFrameFunction([window](DrawInformation &) {
-			static bool drawDepth = false;
-			static const char *postProcessingEffect[] = {"default", "blur", "sharpening", "greyscale", "sephia", "sobel"};
-			static int postProcessingIndex = 0;
-
-			if (ImGui::Begin("Post Processing")) {
-				ImGui::SetWindowSize(ImVec2(290, 80));
-				ImGui::Checkbox("Depth Map", &drawDepth);
-				ImGui::Combo("Effect", &postProcessingIndex, postProcessingEffect, IM_ARRAYSIZE(postProcessingEffect));
-			}
-			ImGui::End();
-
-			window->DrawDepth(drawDepth);
-
-			if (postProcessingIndex == 0)
-				window->ResetPostProcessing();
-			else
-				window->SetPostProcessing(postProcessingEffect[postProcessingIndex]);
-		});*/
 
 		/*auto sponza = Scene::CreateMesh("sponza");
 		sponza->LoadMesh(MODELS_DIR + "Sponza/sponza.obj");
 		sponza->Scale(glm::vec3(0.1, 0.1, 0.1));*/
 
-		/*auto light1 = Scene::CreateLight<Light>();
-		light1->Translate(glm::vec3(50, 40, 0));
-		light1->SetIntensity(10);
-
-		auto light2 = Scene::CreateLight<Light>();
-		light2->Translate(glm::vec3(0, 40, 0));
-		light2->SetIntensity(10);
-
-		auto light3 = Scene::CreateLight<Light>();
-		light3->Translate(glm::vec3(-50, 40, 0));
-		light3->SetIntensity(10);*/
-
-/*		auto ogre = Scene::CreateMesh("ogre");
-		ogre->SetShader("normalMapping.vert", "normalMapping.frag");
-		ogre->LoadMesh(MODELS_DIR + "ogre/bs_ears.obj");
-		ogre->Translate(glm::vec3(0, 1, 0));*/
-
-		/*auto ogre_texture = Scene::CreateTexture("ogre/texture");
-		auto ogre_normalmap = Scene::CreateTexture("ogre/normal");
-
-		ogre_texture->initFromFile(MODELS_DIR + "ogre/ogre_diffuse.png");
-		ogre_normalmap->initFromFile(MODELS_DIR + "ogre/ogre_normalmap.png");
-
-		auto mat = Scene::CreateMaterial("ogre");
-		mat->AddTexture(ogre_texture);
-		mat->normalMap = ogre_normalmap;
-		mat->shiness = 10;
-		mat->Ambient = glm::vec3(0.5, 0.5, 0.5);
-
-		ogre->material = mat;*/
-
-		/*auto spot = Scene::CreateLight<SpotLight>(glm::vec3(0, 0, 0), 2);
-		auto spot2 = Scene::CreateLight<SpotLight>(*spot);
-		spot->Translate(glm::vec3(4, 4, 0));
-		spot2->Translate(glm::vec3(-4, 4, 0));
-
-*/
-		/*auto light1 = Scene::CreateLight<Light>();
-		light1->Translate(glm::vec3(0, 0, 0));
-		light1->SetIntensity(1);*/
-
-		/*std::vector<std::shared_ptr<Light>> lights;
-
-		window->RegisterFrameFunction([&](auto &) {
-			if (ImGui::Begin("Light")) {
-				if (ImGui::Button("Add Light")) {
-					lights.push_back(Scene::CreateLight<Light>());
-				}
-
-				if (ImGui::TreeNode("Lights")) {
-					int index = 0;
-					for (auto &light : lights) {
-						if (ImGui::TreeNode((std::string("Light ") + std::to_string(index++)).c_str())) {
-							glm::vec3 pos = light->getPosition();
-							float intensity = light->GetIntensity();
-							ImGui::InputFloat3("Light Position", glm::value_ptr(pos));
-							ImGui::SliderFloat("Light Intensity", &intensity, 0, 20);
-
-							light->Translate(-light->getPosition());
-							light->Translate(pos);
-
-							light->SetIntensity(intensity);
-							ImGui::TreePop();
-						}
-					}
-					ImGui::TreePop();
-				}
-			}
-			ImGui::End();
-		});*/
-
-		/*auto light2 = Scene::CreateLight<Light>();
-		light2->Translate(glm::vec3(-4, 4, 0));
-
-		auto light3 = Scene::CreateLight<Light>();
-		light3->Translate(glm::vec3(0, 4, 4));
-
-		auto light4 = Scene::CreateLight<Light>();
-		light4->Translate(glm::vec3(0, 4, -4));*/
-
-/*
-		auto dragon = Scene::CreateObject<Mesh>(MODELS_DIR + "dragon.obj");
-		dragon->material = Scene::FindMaterial("cartoon");
-		dragon->Translate(glm::vec3(0, 1, 0));
-		dragon->Scale(glm::vec3(2, 2, 2));
-		dragon->EnableCulling();
-		dragon->SetCullFaceOption(GL_BACK);
-		dragon->SetCustomUniform("fogColor", glm::vec3(0.5, 0.5, 0.5));
-		dragon->SetCustomUniform("minDist", 0.1f);
-		dragon->SetCustomUniform("maxDist", 10.0f);
-
-		auto silhouette = Scene::CreateObject<Mesh>(*dragon);
-		silhouette->material = Scene::FindMaterial("silhouette");
-		silhouette->SetCullFaceOption(GL_FRONT);
-		silhouette->SetCustomUniform("offset", 0.01f);*/
+		window->RegisterFrameFunction(std::bind(&LightingInfo, mountain, std::placeholders::_1));
+		window->RegisterFrameFunction(std::bind(&DrawingInfo, window, std::placeholders::_1));
 
 		window->RegisterFrameFunction(DrawFrameRate);
-		//window->RegisterFrameFunction(DrawHelp);
+		window->RegisterFrameFunction(DrawHelp);
 	}
 
 	window->Run();

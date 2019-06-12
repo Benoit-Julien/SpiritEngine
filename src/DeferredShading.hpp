@@ -29,12 +29,12 @@ class DeferredShading : public Singleton<DeferredShading> {
 	std::shared_ptr<ShaderProgram> _shader;
 
  private:
-	DeferredShading();
+	explicit DeferredShading();
 	~DeferredShading();
 
  public:
 	static void WindowResize(const int &width, const int &height);
-	static void Draw(const DrawInformation &info);
+	static void Draw(const DrawInformation &info, const bool &doLightPass = true);
 
 	inline static const GLuint &GetTexture(const std::string &texture) {
 		return DeferredShading::getSingleton()._texManager->Get(texture);

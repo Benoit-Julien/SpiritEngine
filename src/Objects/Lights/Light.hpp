@@ -5,7 +5,6 @@
 
 class Light : public Movable {
  private:
-	float _intensity;
 	float _radius;
 
  public:
@@ -13,20 +12,18 @@ class Light : public Movable {
 	glm::vec3 Diffuse;
 	glm::vec3 Specular;
 
+	float Intensity;
+
 	static float Constant;
 	static float Linear;
 	static float Quadratic;
 
  public:
-	Light(const float &intensity = 1.0f);
+	explicit Light(const float &intensity = 1.0f);
 	virtual ~Light();
 
 	Light(const Light &light);
 	Light &operator=(const Light &light);
-
-	inline void SetIntensity(const float &intensity) { this->_intensity = intensity; }
-
-	inline const float &GetIntensity() const { return this->_intensity; }
 
 	inline const float &GetRadius() const { return this->_radius; }
 

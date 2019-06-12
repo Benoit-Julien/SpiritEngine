@@ -27,7 +27,7 @@ void DeferredShading::WindowResize(const int &width, const int &height) {
 	self->setupTexture();
 }
 
-void DeferredShading::Draw(const DrawInformation &info) {
+void DeferredShading::Draw(const DrawInformation &info, const bool &doLightPass) {
 	auto self = DeferredShading::getSingletonPtr();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, self->_gbufferFboManager->getFboId());
@@ -38,44 +38,77 @@ void DeferredShading::Draw(const DrawInformation &info) {
 
 	Scene::Draw(info);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, self->_deferredFboManager->getFboId());
-	glEnable(GL_BLEND);
-	glBlendEquation(GL_FUNC_ADD);
-	glBlendFunc(GL_ONE, GL_ONE);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glDisable(GL_DEPTH_TEST);
-	glViewport(0, 0, self->_width, self->_height);
+	if (doLightPass) {
+		glBindFramebuffer(GL_FRAMEBUFFER, self->_deferredFboManager->getFboId());
+		glEnable(GL_BLEND);
+		glBlendEquation(GL_FUNC_ADD);
+		glBlendFunc(GL_ONE, GL_ONE);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glDisable(GL_DEPTH_TEST);
+		glViewport(0, 0, self->_width, self->_height);
 
-	self->_shader->use();
-	self->setTexture("gPosition", self->_texManager->Get("gPosition"), 0);
-	self->setTexture("gNormal", self->_texManager->Get("gNormal"), 1);
-	self->setTexture("gAmbientAlbedo", self->_texManager->Get("gAmbientAlbedo"), 2);
-	self->setTexture("gDiffuseAlbedo", self->_texManager->Get("gDiffuseAlbedo"), 3);
-	self->setTexture("gSpecular", self->_texManager->Get("gSpecular"), 4);
+		self->_shader->use();
+		self->setTexture("gPosition", self->_texManager->Get("gPosition"), 0);
+		self->setTexture("gNormal", self->_texManager->Get("gNormal"), 1);
+		self->setTexture("gAmbientAlbedo", self->_texManager->Get("gAmbientAlbedo"), 2);
+		self->setTexture("gDiffuseAlbedo", self->_texManager->Get("gDiffuseAlbedo"), 3);
+		self->setTexture("gSpecular", self->_texManager->Get("gSpecular"), 4);
 
-	self->_shader->setUniform("cameraPosition", info.cameraPosition);
-	self->_shader->setUniform("constant", self->_constant);
-	self->_shader->setUniform("linear", self->_linear);
-	self->_shader->setUniform("quadratic", self->_quadratic);
+		self->_shader->setUniform("cameraPosition", info.cameraPosition);
+		self->_shader->setUniform("constant", self->_constant);
+		self->_shader->setUniform("linear", self->_linear);
+		self->_shader->setUniform("quadratic", self->_quadratic);
 
-	self->_shader->setSubroutine("CalcAmbientColor", GL_FRAGMENT_SHADER);
-	self->drawQuad();
-
-	self->_shader->setSubroutine("CalcPointLight", GL_FRAGMENT_SHADER);
-	for (auto &light : Scene::GetLights()) {
-		glm::vec3 position = glm::vec3(light.second->getModelMatrix() * glm::vec4(0, 0, 0, 1));
-
-		self->_shader->setUniform("light.position", position);
-		self->_shader->setUniform("light.ambient", light.second->Ambient);
-		self->_shader->setUniform("light.diffuse", light.second->Diffuse);
-		self->_shader->setUniform("light.specular", light.second->Specular);
-		self->_shader->setUniform("light.intensity", light.second->GetIntensity());
-		self->_shader->setUniform("light.radius", light.second->GetRadius());
-
+		self->_shader->setSubroutine("CalcAmbientColor", GL_FRAGMENT_SHADER);
 		self->drawQuad();
-	}
 
-	self->_shader->disable();
+		auto dirLight = Scene::GetDirectionLight();
+		if (dirLight != nullptr) {
+			self->_shader->setSubroutine("CalcDirectionalLight", GL_FRAGMENT_SHADER);
+
+			glm::vec3 dir = dirLight->GetRotation() * glm::vec4(0, 0, 1, 1);
+
+			self->_shader->setUniform("directionalLight.direction", dir);
+			self->_shader->setUniform("directionalLight.ambient", dirLight->Ambient);
+			self->_shader->setUniform("directionalLight.diffuse", dirLight->Diffuse);
+			self->_shader->setUniform("directionalLight.specular", dirLight->Specular);
+			self->_shader->setUniform("directionalLight.intensity", dirLight->Intensity);
+
+			self->drawQuad();
+		}
+
+		for (auto &light : Scene::GetLights()) {
+			glm::vec3 position = light.second->GetWorldModelMatrix() * glm::vec4(0, 0, 0, 1);
+
+			auto spot = std::dynamic_pointer_cast<SpotLight>(light.second);
+			if (spot != nullptr) {
+				glm::vec3 dir = spot->GetRotation() * glm::vec4(0, 0, 1, 1);
+
+				self->_shader->setSubroutine("CalcSpotLight", GL_FRAGMENT_SHADER);
+				self->_shader->setUniform("spotLight.position", position);
+				self->_shader->setUniform("spotLight.direction", dir);
+				self->_shader->setUniform("spotLight.ambient", spot->Ambient);
+				self->_shader->setUniform("spotLight.diffuse", spot->Diffuse);
+				self->_shader->setUniform("spotLight.specular", spot->Specular);
+				self->_shader->setUniform("spotLight.intensity", spot->Intensity);
+				self->_shader->setUniform("spotLight.cutoff", spot->Cutoff);
+				self->_shader->setUniform("spotLight.innerCutoff", spot->InnerCutoff);
+				self->_shader->setUniform("spotLight.exponent", spot->Exponent);
+			}
+			else {
+				self->_shader->setSubroutine("CalcPointLight", GL_FRAGMENT_SHADER);
+				self->_shader->setUniform("pointLight.position", position);
+				self->_shader->setUniform("pointLight.ambient", light.second->Ambient);
+				self->_shader->setUniform("pointLight.diffuse", light.second->Diffuse);
+				self->_shader->setUniform("pointLight.specular", light.second->Specular);
+				self->_shader->setUniform("pointLight.intensity", light.second->Intensity);
+				self->_shader->setUniform("pointLight.radius", light.second->GetRadius());
+			}
+
+			self->drawQuad();
+		}
+		self->_shader->disable();
+	}
 }
 
 void DeferredShading::setupTexture() {

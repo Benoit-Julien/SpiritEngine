@@ -5,7 +5,7 @@ in vec2 uv;
 
 out vec4 fColor;
 
-struct Light {
+struct PointLight {
     vec3 position;
 
     vec3 ambient;
@@ -13,6 +13,30 @@ struct Light {
     vec3 specular;
     float intensity;
     float radius;
+};
+
+struct SpotLight {
+    vec3 position;
+    vec3 direction;
+
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    float intensity;
+
+    float cutoff;
+    float innerCutoff;
+    float exponent;
+};
+
+struct DirLight
+{
+    vec3 direction;
+
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    float intensity;
 };
 
 struct LightInfos {
@@ -47,7 +71,9 @@ uniform sampler2D gSpecular;
 
 uniform vec3 cameraPosition;
 
-uniform Light light;
+uniform PointLight pointLight;
+uniform SpotLight spotLight;
+uniform DirLight directionalLight;
 
 uniform float constant;
 uniform float linear;
@@ -83,13 +109,54 @@ LightInfos CalcLightInformations(vec3 lightPosition, ObjectInfos infos) {
 
 subroutine(calcColor_t)
 vec3 CalcPointLight(ObjectInfos infos) {
-    if (length(light.position - infos.position) > light.radius)
-        return vec3(0, 0, 0);
+    if (length(pointLight.position - infos.position) > pointLight.radius) discard;
 
-    LightInfos lightInfos = CalcLightInformations(light.position, infos);
+    LightInfos lightInfos = CalcLightInformations(pointLight.position, infos);
 
-    vec3 diffuse = infos.diffuseAlbedo * light.diffuse * lightInfos.dotNL * light.intensity * lightInfos.attenuation;
-    vec3 specular = infos.specularAlbedo * light.specular * lightInfos.pf * light.intensity * lightInfos.attenuation;
+    vec3 diffuse = infos.diffuseAlbedo * pointLight.diffuse * lightInfos.dotNL * pointLight.intensity * lightInfos.attenuation;
+    vec3 specular = infos.specularAlbedo * pointLight.specular * lightInfos.pf * pointLight.intensity * lightInfos.attenuation;
+
+    return diffuse + specular;
+}
+
+subroutine(calcColor_t)
+vec3 CalcSpotLight(ObjectInfos infos)
+{
+    LightInfos lightInfos = CalcLightInformations(spotLight.position, infos);
+
+    float spotDir = dot(-lightInfos.L, normalize(spotLight.direction));
+    float angle = acos(spotDir);// radian angle
+
+    float spotAttenuation;
+    if (angle < radians(spotLight.innerCutoff)) spotAttenuation = 1.0;
+    else {
+        float spotValue = smoothstep(cos(radians(spotLight.cutoff)), cos(radians(spotLight.innerCutoff)), spotDir);
+        spotAttenuation = pow(spotValue, spotLight.exponent);
+    }
+    float attenuation = lightInfos.attenuation * spotAttenuation;
+
+    vec3 diffuse = infos.diffuseAlbedo * spotLight.diffuse * lightInfos.dotNL * spotLight.intensity * lightInfos.attenuation;
+    vec3 specular = infos.specularAlbedo * spotLight.specular * lightInfos.pf * spotLight.intensity * lightInfos.attenuation;
+
+    return diffuse + specular;
+}
+
+subroutine(calcColor_t)
+vec3 CalcDirectionalLight(ObjectInfos infos)
+{
+    vec3 lightDir = normalize(-directionalLight.direction);
+    vec3 viewDir = normalize(cameraPosition - infos.position);
+
+    // diffuse shading
+    float diff = max(dot(infos.normal, lightDir), 0.0);
+
+    // specular shading
+    vec3 reflectDir = reflect(-lightDir, infos.normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), infos.shiness);
+
+    // combine results
+    vec3 diffuse  = infos.diffuseAlbedo * directionalLight.diffuse * diff * directionalLight.intensity;
+    vec3 specular = infos.specularAlbedo * directionalLight.specular * spec * directionalLight.intensity;
 
     return diffuse + specular;
 }
@@ -108,6 +175,8 @@ void main() {
     vec4 spec = texture(gSpecular, uv);
     infos.specularAlbedo = spec.rgb;
     infos.shiness = spec.a;
+
+    if (infos.shiness == 0) discard;
 
     fColor = vec4(CalcColor(infos), 1.0);
 }

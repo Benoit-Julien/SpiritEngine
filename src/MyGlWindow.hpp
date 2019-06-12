@@ -28,6 +28,7 @@ class MyGlWindow {
 	bool _windowOpen;
 
 	std::string _postProcessingName;
+	std::string _bufferName;
 	bool _drawDepth;
 
  public:
@@ -57,6 +58,8 @@ class MyGlWindow {
 
 	inline void SetPostProcessing(const std::string &name) { this->_postProcessingName = name; }
 	inline void ResetPostProcessing() { this->_postProcessingName = ""; }
+
+	inline void SetDrawBuffer(const std::string &name) { this->_bufferName = name; }
 
 	inline void DrawDepth(const bool &depth) { this->_drawDepth = depth; }
 

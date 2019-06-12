@@ -6,9 +6,8 @@
 
 Movable::Movable(const ObjectType &type) : Object(type) {
 	this->_position = glm::vec3(0, 0, 0);
-	this->_rotation = glm::mat4(1.0f);
+	this->_rotation = glm::identity<glm::quat>();
 	this->_scale = glm::vec3(1, 1, 1);
-	this->_modelMatrix = glm::mat4(1.0f);
 
 	this->_translateLocked = false;
 	this->_rotateLocked = false;
@@ -24,7 +23,6 @@ Movable::Movable(const Movable &movable)
 					_position(movable._position),
 					_rotation(movable._rotation),
 					_scale(movable._scale),
-					_modelMatrix(movable._modelMatrix),
 					_translateLocked(movable._translateLocked),
 					_rotateLocked(movable._rotateLocked),
 					_scaleLocked(movable._scaleLocked),
@@ -36,7 +34,6 @@ Movable &Movable::operator=(const Movable &movable) {
 	this->_position = movable._position;
 	this->_rotation = movable._rotation;
 	this->_scale = movable._scale;
-	this->_modelMatrix = movable._modelMatrix;
 	this->_translateLocked = movable._translateLocked;
 	this->_rotateLocked = movable._rotateLocked;
 	this->_scaleLocked = movable._scaleLocked;
@@ -46,65 +43,59 @@ Movable &Movable::operator=(const Movable &movable) {
 }
 
 void Movable::Translate(const glm::vec3 &vec) {
-	if (this->_translateLocked)
-		return;
+	if (this->_translateLocked) return;
 
 	this->_position += vec;
-	this->_modelMatrix *= glm::translate(glm::mat4(1.0f), vec);
 }
 
-void Movable::Rotate(const float &degree, const glm::vec3 &axis) {
-	if (this->_rotateLocked)
-		return;
+/*void Movable::Rotate(const float &degree, const glm::vec3 &axis) {
+	if (this->_rotateLocked) return;
 
-	glm::mat4 rot = glm::rotate(glm::mat4(1.0f), glm::radians(degree), axis);
-	this->Rotate(rot);
-}
-
-void Movable::Rotate(const glm::mat4 &mat) {
-	if (this->_rotateLocked)
-		return;
-
-	this->_rotation = this->_rotation * mat;
-	this->_modelMatrix = this->_modelMatrix * mat;
-}
+	this->_rotation = this->_rotation * glm::angleAxis(glm::radians(degree), axis);
+}*/
 
 void Movable::Scale(const glm::vec3 &vec) {
-	if (this->_scaleLocked)
-		return;
+	if (this->_scaleLocked) return;
 
 	this->_scale *= vec;
-	this->_modelMatrix *= glm::scale(glm::mat4(1.0f), vec);
 }
 
-glm::mat4 Movable::getLocalTransformation() const {
-	glm::mat4 mat = this->getModelMatrix();
+void Movable::SetPosition(const glm::vec3 &pos) {
+	if (this->_translateLocked) return;
 
-	if (this->Parent)
-		mat = this->Parent->getLocalTransformation() * mat;
+	this->_position = pos;
+}
+
+void Movable::SetRotation(const glm::quat &rot) {
+	if (this->_rotateLocked) return;
+
+	this->_rotation = rot;
+}
+
+void Movable::SetEulerAngles(const glm::vec3 &euler) {
+	if (this->_rotateLocked) return;
+
+	this->_rotation = glm::quat(euler);
+}
+
+void Movable::SetScale(const glm::vec3 &scale) {
+	if (this->_scaleLocked) return;
+}
+
+glm::mat4 Movable::GetLocalModelMatrix() const {
+	auto trans = glm::translate(glm::mat4(1.0f), this->_position);
+	auto rot = glm::toMat4(this->_rotation);
+	auto scale = glm::scale(glm::mat4(1.0f), this->_scale);
+
+	return scale * rot * trans;
+}
+
+glm::mat4 Movable::GetWorldModelMatrix() const {
+	auto mat = this->GetLocalModelMatrix();
+
+	if (this->Parent != nullptr)
+		mat = this->Parent->GetWorldModelMatrix() * mat;
 	return mat;
-}
-
-glm::vec3 Movable::ToWorldPosition() const {
-	return this->getLocalTransformation()[3];
-}
-
-glm::mat4 Movable::ToWorldRotation() const {
-	glm::mat4 mat = this->getLocalTransformation();
-	glm::vec3 scale = this->ToWorldScale();
-
-	return mat * glm::mat4{
-					glm::vec4(1 / scale.x, 0, 0, 0),
-					glm::vec4(0, 1 / scale.y, 0, 0),
-					glm::vec4(0, 0, 1 / scale.z, 0),
-					glm::vec4(0, 0, 0, 1)
-	};
-}
-
-glm::vec3 Movable::ToWorldScale() const {
-	glm::mat4 mat = this->getLocalTransformation();
-
-	return glm::vec3(glm::length(mat[0]), glm::length(mat[1]), glm::length(mat[2]));
 }
 
 void Movable::SetParent(std::shared_ptr<Movable> parent) {

@@ -18,10 +18,6 @@
 	#define PATH_DELIMITER '/'
 #endif
 
-extern const unsigned char *DefaultLogo;
-static const int DefaultLogoWidth = 128;
-static const int DefaultLogoHeight = 128;
-
 static std::string GetCurrentWorkingDir() {
 	char buff[FILENAME_MAX];
 	GetCurrentDir(buff, FILENAME_MAX);

@@ -204,7 +204,7 @@ void Scene::recursiveDraw(std::shared_ptr<Drawable> obj, const DrawInformation &
 	if (!obj)
 		return;
 
-	glm::mat4 m = model * obj->getModelMatrix();
+	glm::mat4 m = model * obj->GetLocalModelMatrix();
 	glm::mat3 n = glm::mat3(glm::transpose(glm::inverse(m)));
 
 	obj->Draw(ShaderVariables(m, n, info.viewMatrix, info.projectionMatrix, info.cameraPosition));
@@ -217,7 +217,7 @@ void Scene::recursiveShadowDraw(std::shared_ptr<Drawable> obj, const DrawInforma
 	if (!obj)
 		return;
 
-	glm::mat4 m = model * obj->getModelMatrix();
+	glm::mat4 m = model * obj->GetLocalModelMatrix();
 	obj->SetCustomUniform("lightMVP", info.projectionMatrix * info.viewMatrix * m);
 	obj->SetCustomUniform("depth", 0);
 

@@ -48,7 +48,6 @@ set(SOURCES
         src/Viewer.cpp
         src/Scene.cpp
         src/Material.cpp
-        src/utils.cpp
         src/DeferredShading.cpp
         src/FBO/FboManager.cpp
         src/FBO/TextureManager.cpp

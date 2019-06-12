@@ -42,6 +42,7 @@ MyGlWindow::MyGlWindow(const int &w, const int &h) : width(w), height(h) {
 	this->_lastMouseY = 0;
 
 	this->_postProcessingName = "";
+	this->_bufferName = "deferredRender";
 	this->_drawDepth = false;
 
 	this->near = 0.1f;
@@ -143,7 +144,7 @@ void MyGlWindow::drawingLoop() {
 }
 
 void MyGlWindow::physicalLoop() {
-	long long waitTime = 100;
+	long long waitTime = 1;
 
 	while (this->_windowOpen) {
 		Scene::PhysicalUpdate();
@@ -169,7 +170,10 @@ void MyGlWindow::draw() {
 	for (auto &func : this->_frameFunction)
 		func.second(info);
 
-	DeferredShading::Draw(info);
+	if (this->_bufferName != "deferredRender" || this->_drawDepth)
+		DeferredShading::Draw(info, false);
+	else
+		DeferredShading::Draw(info);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_BLEND);
@@ -178,13 +182,10 @@ void MyGlWindow::draw() {
 
 	if (this->_drawDepth)
 		PostProcessing::DrawDepth(DeferredShading::GetTexture("depth"));
+	else if (this->_bufferName != "deferredRender")
+		PostProcessing::Draw(DeferredShading::GetTexture(this->_bufferName), "");
 	else
 		PostProcessing::Draw(DeferredShading::GetTexture("deferredRender"), this->_postProcessingName);
-		//PostProcessing::Draw(DeferredShading::GetTexture("gPosition"), this->_postProcessingName);
-		//PostProcessing::Draw(DeferredShading::GetTexture("gNormal"), this->_postProcessingName);
-		//PostProcessing::Draw(DeferredShading::GetTexture("gAmbientAlbedo"), this->_postProcessingName);
-		//PostProcessing::Draw(DeferredShading::GetTexture("gDiffuseAlbedo"), this->_postProcessingName);
-		//PostProcessing::Draw(DeferredShading::GetTexture("gSpecular"), this->_postProcessingName);
 
 	//ImGui::ShowDemoWindow();
 }
@@ -245,14 +246,6 @@ void MyGlWindow::initialize() {
 	glfwSetMouseButtonCallback(this->_window, genericCallback(mouse_button_callback));
 
 	DeferredShading::WindowResize(this->width, this->height);
-
-	GLFWimage icon;
-	int channels;
-
-	icon.pixels = (unsigned char *) DefaultLogo;
-	icon.width = DefaultLogoWidth;
-	icon.height = DefaultLogoHeight;
-	glfwSetWindowIcon(this->_window, 1, &icon);
 }
 
 void MyGlWindow::key_callback(int key, int scancode, int action, int mods) {
