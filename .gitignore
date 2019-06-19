@@ -5,7 +5,6 @@
 *.slo
 *.lo
 *.o
-*.obj
 
 # Precompiled Headers
 *.gch
@@ -33,3 +32,10 @@
 
 .idea
 cmake-build-debug
+*.obj
+*.mtl
+*.3ds
+*.png
+*.jpg
+*.JPG
+*.tga

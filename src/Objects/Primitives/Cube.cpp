@@ -3,6 +3,7 @@
 Cube::Cube() : TriangleObject(ObjectType::Cube) {
 	this->setupVertices();
 	this->setup();
+	this->name = "Cube";
 }
 
 Cube::~Cube() {}
@@ -16,15 +17,15 @@ Cube &Cube::operator=(const Cube &cube) {
 void Cube::setupVertices() {
 
 	/************ Vertices ************/
-	glm::vec3 p0(-0.5f, -0.5f, 0.5f);
-	glm::vec3 p1(0.5f, -0.5f, 0.5f);
-	glm::vec3 p2(0.5f, -0.5f, -0.5f);
-	glm::vec3 p3(-0.5f, -0.5f, -0.5f);
+	glm::vec3 p0(-1, -1, 1);
+	glm::vec3 p1(1, -1, 1);
+	glm::vec3 p2(1, -1, -1);
+	glm::vec3 p3(-1, -1, -1);
 
-	glm::vec3 p4(-0.5f, 0.5f, 0.5f);
-	glm::vec3 p5(0.5f, 0.5f, 0.5f);
-	glm::vec3 p6(0.5f, 0.5f, -0.5f);
-	glm::vec3 p7(-0.5f, 0.5f, -0.5f);
+	glm::vec3 p4(-1, 1, 1);
+	glm::vec3 p5(1, 1, 1);
+	glm::vec3 p6(1, 1, -1);
+	glm::vec3 p7(-1, 1, -1);
 
 	this->vertices = std::vector<glm::vec3>{
 					// Bottom
@@ -99,5 +100,31 @@ void Cube::setupVertices() {
 					// Top
 					{3 + 4 * 5, 1 + 4 * 5, 0 + 4 * 5},
 					{3 + 4 * 5, 2 + 4 * 5, 1 + 4 * 5}
+	};
+
+	/************ UVs ************/
+	glm::vec2 _00(0.0f, 0.0f);
+	glm::vec2 _10(1.0f, 0.0f);
+	glm::vec2 _01(0.0f, 1.0f);
+	glm::vec2 _11(1.0f, 1.0f);
+
+	this->uvs = std::vector<glm::vec2>{
+					// Bottom
+					_11, _01, _00, _10,
+
+					// Left
+					_11, _01, _00, _10,
+
+					// Front
+					_11, _01, _00, _10,
+
+					// Back
+					_11, _01, _00, _10,
+
+					// Right
+					_11, _01, _00, _10,
+
+					// Top
+					_11, _01, _00, _10,
 	};
 }

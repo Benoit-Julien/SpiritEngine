@@ -6,6 +6,7 @@ enum class ObjectType {
 	Plane,
 	CheckeredFloor,
 	Cube,
+	SkyBox,
 	WireCube,
 	Sphere,
 	Model3D,

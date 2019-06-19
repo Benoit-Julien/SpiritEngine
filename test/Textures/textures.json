@@ -1,0 +1,32 @@
+{
+  "textures": [
+    {
+      "name": "earth",
+      "type": "texture2d",
+      "image": "images/earth.jpg"
+    },
+    {
+      "name": "brick",
+      "type": "texture2d",
+      "image": "images/brick.jpg"
+    },
+    {
+      "name": "moss",
+      "type": "texture2d",
+      "image": "images/moss.png",
+      "colorFormat": "RGBA"
+    },
+    {
+      "name": "Skybox",
+      "type": "skybox",
+      "images": {
+        "left": "images/skybox/left.JPG",
+        "right": "images/skybox/right.JPG",
+        "top": "images/skybox/top2.JPG",
+        "down": "images/skybox/down.JPG",
+        "front": "images/skybox/front.JPG",
+        "back": "images/skybox/back.JPG"
+      }
+    }
+  ]
+}

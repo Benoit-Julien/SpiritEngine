@@ -3,6 +3,7 @@
 Plane::Plane() : TriangleObject(ObjectType::Plane) {
 	this->setupVertices();
 	this->setup();
+	this->name = "Plane";
 }
 
 Plane::~Plane() {}
@@ -27,6 +28,13 @@ void Plane::setupVertices() {
 					up,
 					up,
 					up
+	};
+
+	this->uvs = std::vector<glm::vec2>{
+					glm::vec2(0.0f, 1.0f),
+					glm::vec2(1.0f, 1.0f),
+					glm::vec2(1.0f, 0.0f),
+					glm::vec2(0.0f, 0.0f)
 	};
 
 	this->triangles = std::vector<TriangleIndex>{

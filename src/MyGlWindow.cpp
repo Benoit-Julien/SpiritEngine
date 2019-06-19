@@ -3,11 +3,18 @@
 #include <imgui/impl/imgui_impl_glfw.h>
 #include <imgui/impl/imgui_impl_opengl3.h>
 #include <iostream>
+#include <thread>
+#include <stb/stb_image.h>
 
 #include "MyGlWindow.hpp"
 #include "Scene.hpp"
 #include "IDGenerator.hpp"
 #include "Viewer.h"
+#include "Global.hpp"
+#include "FBO/FboManager.hpp"
+#include "FBO/TextureManager.hpp"
+#include "PostProcessing.hpp"
+#include "DeferredShading.hpp"
 
 static float DEFAULT_VIEW_POINT[3] = {5, 5, 5};
 static float DEFAULT_VIEW_CENTER[3] = {0, 0, 0};
@@ -33,6 +40,15 @@ MyGlWindow::MyGlWindow(const int &w, const int &h) : width(w), height(h) {
 	this->_cy = 0;
 	this->_lastMouseX = 0;
 	this->_lastMouseY = 0;
+
+	this->_postProcessingName = "";
+	this->_bufferName = "deferredRender";
+	this->_drawDepth = false;
+
+	this->near = 0.1f;
+	this->far = 500.0f;
+	PostProcessing::SetNear(this->near);
+	PostProcessing::SetFar(this->far);
 }
 
 MyGlWindow::~MyGlWindow() {
@@ -59,12 +75,45 @@ void MyGlWindow::UnRegisterFrameFunction(const unsigned int &ID) {
 	IDGenerator::getSingleton().removeUniqueId(ID);
 }
 
-void MyGlWindow::Run() {
-	while (!glfwWindowShouldClose(this->_window)) {
-		glClearColor(0.2f, 0.2f, 0.2f, 1.0); /// background color
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+unsigned int MyGlWindow::RegisterPhysicalUpdateFunction(const std::function<void()> &func) {
+	auto id = IDGenerator::getSingleton().generateUniqueId();
+	this->_physicalUpdateFunction[id] = func;
+	return id;
+}
 
-		glEnable(GL_DEPTH_TEST);
+void MyGlWindow::UnRegisterPhysicalUpdateFunction(const unsigned int &ID) {
+	auto elem = this->_physicalUpdateFunction.find(ID);
+	if (elem == this->_physicalUpdateFunction.end())
+		throw std::logic_error("Cannot remove function of id " + std::to_string(ID) + " because it's not registered.");
+
+	this->_physicalUpdateFunction.erase(elem);
+	IDGenerator::getSingleton().removeUniqueId(ID);
+}
+
+void MyGlWindow::Run() {
+	this->_windowOpen = true;
+
+	std::thread physicThread(&MyGlWindow::physicalLoop, this);
+
+	this->drawingLoop();
+	this->_windowOpen = false;
+	physicThread.join();
+}
+
+void MyGlWindow::ChangeWindowsLogo(const std::string &path) {
+	GLFWimage icon;
+	int channels;
+
+	icon.pixels = stbi_load(path.c_str(), &icon.width, &icon.height, &channels, 0);
+	if (!icon.pixels)
+		throw std::logic_error("Fail to load logo image : " + path);
+
+	glfwSetWindowIcon(this->_window, 1, &icon);
+}
+
+void MyGlWindow::drawingLoop() {
+	while (!glfwWindowShouldClose(this->_window)) {
+		Scene::BeforeDrawing();
 
 		int display_w, display_h;
 		glfwGetFramebufferSize(this->_window, &display_w, &display_h);
@@ -78,6 +127,7 @@ void MyGlWindow::Run() {
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
+		//Scene::DrawObjectsList();
 		this->draw();
 
 		ImGui::Render();
@@ -85,14 +135,27 @@ void MyGlWindow::Run() {
 
 		/* Swap front and back buffers */
 		glfwSwapBuffers(this->_window);
+
 		/* Poll for and process events */
 		glfwPollEvents();
 
-		this->mouseDragging(display_w, display_h);
+		this->mouseDragging(this->width, this->height);
+	}
+}
+
+void MyGlWindow::physicalLoop() {
+	long long waitTime = 1;
+
+	while (this->_windowOpen) {
+		Scene::PhysicalUpdate();
+		for (auto &physicFunc : this->_physicalUpdateFunction)
+			physicFunc.second();
+		std::this_thread::sleep_for(std::chrono::milliseconds(waitTime));
 	}
 }
 
 void MyGlWindow::draw() {
+
 	glm::vec3 eye = this->_viewer->getViewPoint();
 	glm::vec3 look = this->_viewer->getViewCenter();
 	glm::vec3 up = this->_viewer->getUpVector();
@@ -100,13 +163,31 @@ void MyGlWindow::draw() {
 
 	glm::mat4 projection = glm::perspective(this->_viewer->getFieldOfView(),
 																					this->_viewer->getAspectRatio(),
-																					0.1f,
-																					500.0f);
-	DrawInformation info = { view, projection };
+																					this->near,
+																					this->far);
+	DrawInformation info = {view, projection, eye};
+
 	for (auto &func : this->_frameFunction)
 		func.second(info);
 
-	Scene::Draw(info);
+	if (this->_bufferName != "deferredRender" || this->_drawDepth)
+		DeferredShading::Draw(info, false);
+	else
+		DeferredShading::Draw(info);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDisable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
+	glViewport(0, 0, this->width, this->height);
+
+	if (this->_drawDepth)
+		PostProcessing::DrawDepth(DeferredShading::GetTexture("depth"));
+	else if (this->_bufferName != "deferredRender")
+		PostProcessing::Draw(DeferredShading::GetTexture(this->_bufferName), "");
+	else
+		PostProcessing::Draw(DeferredShading::GetTexture("deferredRender"), this->_postProcessingName);
+
+	//ImGui::ShowDemoWindow();
 }
 
 void MyGlWindow::windowResize(int w, int h) {
@@ -115,6 +196,7 @@ void MyGlWindow::windowResize(int w, int h) {
 
 	float aspect = (w / (float) h);
 	this->_viewer->setAspectRatio(aspect);
+	DeferredShading::WindowResize(this->width, this->height);
 }
 
 void MyGlWindow::initialize() {
@@ -137,9 +219,9 @@ void MyGlWindow::initialize() {
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	ImGuiIO &io = ImGui::GetIO();
 
-	const char* glsl_version = "#version 410";
+	const char *glsl_version = "#version 410";
 
 	ImGui_ImplGlfw_InitForOpenGL(this->_window, true);
 	ImGui_ImplOpenGL3_Init(glsl_version);
@@ -149,13 +231,9 @@ void MyGlWindow::initialize() {
 //ImGui::StyleColorsLight();
 
 	glfwMakeContextCurrent(this->_window);
-	/* Make the window's context current */
-	glewExperimental = GL_TRUE;
-	GLenum err = glewInit();
-	if (err != GLEW_OK) {
-		//Problem: glewInit failed, something is seriously wrong.
-		throw std::runtime_error("glewInit failed, aborting.");
-	}
+	if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress))
+		throw std::runtime_error("Failed to initialize OpenGL context.");
+
 	glfwSwapInterval(1); //enable vsync
 
 	std::cout << "OpenGL " << glGetString(GL_VERSION) << ", GLSL " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
@@ -166,6 +244,8 @@ void MyGlWindow::initialize() {
 	glfwSetCursorPosCallback(this->_window, genericCallback(cursor_pos_callback));
 	glfwSetScrollCallback(this->_window, genericCallback(scroll_callback));
 	glfwSetMouseButtonCallback(this->_window, genericCallback(mouse_button_callback));
+
+	DeferredShading::WindowResize(this->width, this->height);
 }
 
 void MyGlWindow::key_callback(int key, int scancode, int action, int mods) {
@@ -179,7 +259,7 @@ void MyGlWindow::cursor_pos_callback(double xpos, double ypos) {
 }
 
 void MyGlWindow::scroll_callback(double xoffset, double yoffset) {
-	this->_viewer->zoom(yoffset * 0.01f);
+	this->_viewer->zoom(yoffset * 0.01);
 }
 
 void MyGlWindow::mouse_button_callback(int button, int action, int mods) {
@@ -208,12 +288,12 @@ void MyGlWindow::mouse_button_callback(int button, int action, int mods) {
 }
 
 void MyGlWindow::mouseDragging(double width, double height) {
-	if (_lbutton_down) {
+	if (this->_lbutton_down) {
 		float fractionChangeX = static_cast<float>(this->_cx - this->_lastMouseX) / static_cast<float>(width);
 		float fractionChangeY = static_cast<float>(this->_lastMouseY - this->_cy) / static_cast<float>(height);
 		this->_viewer->rotate(fractionChangeX, fractionChangeY);
 	}
-	else if (_rbutton_down) {
+	else if (this->_rbutton_down) {
 		float fractionChangeX = static_cast<float>(this->_cx - this->_lastMouseX) / static_cast<float>(width);
 		float fractionChangeY = static_cast<float>(this->_lastMouseY - this->_cy) / static_cast<float>(height);
 		this->_viewer->translate(-fractionChangeX, -fractionChangeY, 1);

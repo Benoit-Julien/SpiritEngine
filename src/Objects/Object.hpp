@@ -1,7 +1,7 @@
 #ifndef COMPUTERGRAPHICS1_OBJECT_HPP
 #define COMPUTERGRAPHICS1_OBJECT_HPP
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include <glm/vec3.hpp>

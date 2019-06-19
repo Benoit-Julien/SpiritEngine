@@ -1,7 +1,7 @@
 #ifndef COMPUTERGRAPHICS1_MYGLWINDOW_HPP
 #define COMPUTERGRAPHICS1_MYGLWINDOW_HPP
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <memory>
 #include <unordered_map>
@@ -10,6 +10,9 @@
 #include "Objects/Object.hpp"
 #include "Viewer.h"
 #include "Scene.hpp"
+
+#undef near
+#undef far
 
 #define genericCallback(functionName)\
         [](GLFWwindow* window, auto... args) {\
@@ -22,11 +25,20 @@ class MyGlWindow {
 	GLFWwindow *_window;
 	std::shared_ptr<Viewer> _viewer;
 
-	std::unordered_map<unsigned int, std::function<void (DrawInformation &)>> _frameFunction;
+	std::unordered_map<unsigned int, std::function<void(DrawInformation &)>> _frameFunction;
+	std::unordered_map<unsigned int, std::function<void()>> _physicalUpdateFunction;
+
+	bool _windowOpen;
+
+	std::string _postProcessingName;
+	std::string _bufferName;
+	bool _drawDepth;
 
  public:
 	int width;
 	int height;
+	float near;
+	float far;
 
  private:
 	bool _lbutton_down;
@@ -40,10 +52,26 @@ class MyGlWindow {
 	~MyGlWindow();
 
 	void Run();
-	unsigned int RegisterFrameFunction(const std::function<void (DrawInformation &)> &func);
+
+	unsigned int RegisterFrameFunction(const std::function<void(DrawInformation &)> &func);
 	void UnRegisterFrameFunction(const unsigned int &ID);
 
+	unsigned int RegisterPhysicalUpdateFunction(const std::function<void()> &func);
+	void UnRegisterPhysicalUpdateFunction(const unsigned int &ID);
+
+	inline void SetPostProcessing(const std::string &name) { this->_postProcessingName = name; }
+	inline void ResetPostProcessing() { this->_postProcessingName = ""; }
+
+	inline void SetDrawBuffer(const std::string &name) { this->_bufferName = name; }
+
+	inline void DrawDepth(const bool &depth) { this->_drawDepth = depth; }
+
+	void ChangeWindowsLogo(const std::string &path);
+
  private:
+	void physicalLoop();
+	void drawingLoop();
+
 	void initialize();
 	void draw();
 

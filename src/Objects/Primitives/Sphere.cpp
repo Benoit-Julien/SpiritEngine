@@ -10,6 +10,7 @@ Sphere::Sphere(const float &radius, const int &nbLong, const int &nbLat)
 					_nbLat(nbLat) {
 	this->setupVertices();
 	this->setup();
+	this->name = "Sphere";
 }
 
 Sphere::~Sphere() {}
@@ -85,4 +86,12 @@ void Sphere::setupVertices() {
 																				 this->vertices.size() - (lon + 2) - 1,
 																				 this->vertices.size() - (lon + 1) - 1);
 	}
+
+	/************ UVs ************/
+	this->uvs = std::vector<glm::vec2>(this->vertices.size());
+	this->uvs[0] = glm::vec2(0, 1);
+	this->uvs[this->vertices.size() - 1] = glm::vec2(0, 0);
+	for (int lat = 0; lat < this->_nbLat; lat++)
+		for (int lon = 0; lon <= this->_nbLong; lon++)
+			uvs[lon + lat * (this->_nbLong + 1) + 1] = glm::vec2((float) lon / this->_nbLong, 1.0f - (float) (lat + 1) / (this->_nbLat + 1));
 }
