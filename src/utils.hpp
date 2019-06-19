@@ -95,7 +95,7 @@ static std::string CleanFilePath(const std::string &filePath, const std::string 
 static std::string GetFilePath(const std::string &filePath) {
 #ifdef WINDOWS
 	auto p = std::filesystem::path(filePath);
-	std::string s = (p.root_path() / p.relative_path()).string();
+	std::string s = p.replace_filename("").string();
 	//std::replace(s.begin(), s.end(), '\\', '/');
 	return s;
 #else
