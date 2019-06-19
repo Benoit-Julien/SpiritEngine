@@ -149,7 +149,7 @@ static void PointLightInfo(std::shared_ptr<Mesh> mountain) {
 			std::vector<unsigned int> toDelete;
 
 			auto it = lights.cbegin();
-			for (auto i = 0; i < lights.size() + diff; i++, ++it);
+			for (auto i = 0u; i < lights.size() + diff; i++, ++it);
 			for (; it != lights.cend(); ++it)
 				toDelete.push_back(it->first);
 			for (auto &l : toDelete)

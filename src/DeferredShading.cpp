@@ -4,7 +4,7 @@
 DeferredShading::DeferredShading() {
 	this->_constant = 1.0f;
 	this->_linear = 0.1f;
-	this->_quadratic = 0.01;
+	this->_quadratic = 0.01f;
 
 	Light::Constant = this->_constant;
 	Light::Linear = this->_linear;

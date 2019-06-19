@@ -56,10 +56,13 @@ static std::string CleanFilePath(const std::string &filePath, const std::string 
 
 #ifdef WINDOWS
 	auto p = std::filesystem::path(result);
+	std::string s;
 	if (!p.has_root_path())
-		return (std::filesystem::path(b) / p).lexically_normal().string();
+		s = (std::filesystem::path(b) / p).lexically_normal().string();
 	else
-		return p.lexically_normal().string();
+		s = p.lexically_normal().string();
+	std::replace(s.begin(), s.end(), '\\', '/');
+	return s;
 #else
 
 	if (result.front() != '/')
@@ -92,7 +95,9 @@ static std::string CleanFilePath(const std::string &filePath, const std::string 
 static std::string GetFilePath(const std::string &filePath) {
 #ifdef WINDOWS
 	auto p = std::filesystem::path(filePath);
-	return (p.root_path() / p.relative_path()).string();
+	std::string s = (p.root_path() / p.relative_path()).string();
+	std::replace(s.begin(), s.end(), '\\', '/');
+	return s;
 #else
 	auto npos = filePath.find_last_of(PATH_DELIMITER);
 	return filePath.substr(0, npos + 1);
