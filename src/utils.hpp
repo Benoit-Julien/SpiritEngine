@@ -7,21 +7,23 @@
 #include <algorithm>
 
 #ifdef WINDOWS
-	#include <direct.h>
-	#define GetCurrentDir _getcwd
-	#define PATH_DELIMITER '/'
+	#include <filesystem>
 #else
 
 	#include <unistd.h>
 
 	#define GetCurrentDir getcwd
-	#define PATH_DELIMITER '/'
+#define PATH_DELIMITER '/'
 #endif
 
 static std::string GetCurrentWorkingDir() {
+#ifdef WINDOWS
+	return std::filesystem::current_path().string();
+#else
 	char buff[FILENAME_MAX];
 	GetCurrentDir(buff, FILENAME_MAX);
 	return std::string(buff);
+#endif
 }
 
 static std::vector<std::string> SplitString(const std::string &str, const char &delimiter) {
@@ -50,13 +52,18 @@ static std::string Trim(const std::string &str, const std::string &delimiters = 
 
 static std::string CleanFilePath(const std::string &filePath, const std::string &basedDir = "") {
 	auto result = Trim(filePath);
+	auto b = basedDir.empty() ? GetCurrentWorkingDir() : basedDir;
 
 #ifdef WINDOWS
-	if (!(result.find_first_of(":\\") == 1 && result.front() >= 'A' && result.front() <= 'Z'))
+	auto p = std::filesystem::path(result);
+	if (!p.has_root_path())
+		return (std::filesystem::path(b) / p).lexically_normal().string();
+	else
+		return p.lexically_normal().string();
 #else
+
 	if (result.front() != '/')
-#endif
-		result = ((basedDir.empty()) ? GetCurrentWorkingDir() : basedDir) + PATH_DELIMITER + result;
+		result = b + PATH_DELIMITER + result;
 
 	auto list = SplitString(result, PATH_DELIMITER);
 	auto it = list.begin();
@@ -65,11 +72,7 @@ static std::string CleanFilePath(const std::string &filePath, const std::string 
 		if (*it == ".")
 			it = list.erase(it);
 		else if (*it == "..") {
-#ifdef WINDOWS
-			if (std::distance(list.begin(), it) > 1)
-#else
 			if (std::distance(list.begin(), it) > 0)
-#endif
 				it = list.erase(it - 1);
 			it = list.erase(it);
 		}
@@ -77,36 +80,49 @@ static std::string CleanFilePath(const std::string &filePath, const std::string 
 			it++;
 	}
 
-	#ifdef WINDOWS
-	result = list[0] + "\\";
-	it = list.begin() + 1;
-	#else
 	result = "";
 	it = list.begin();
-	#endif
 
 	for (; it != list.end(); ++it)
 		result += PATH_DELIMITER + *it;
 	return result;
+#endif
 }
 
 static std::string GetFilePath(const std::string &filePath) {
+#ifdef WINDOWS
+	auto p = std::filesystem::path(filePath);
+	return (p.root_path() / p.relative_path()).string();
+#else
 	auto npos = filePath.find_last_of(PATH_DELIMITER);
 	return filePath.substr(0, npos + 1);
+#endif
 }
 
 static std::string GetFileName(const std::string &filePath, const bool &extension = true) {
+#ifdef WINDOWS
+	auto p = std::filesystem::path(filePath);
+	if (extension)
+		return p.filename().string();
+	else
+		return p.filename().replace_extension("").string();
+#else
 	auto dotpos = (extension) ? filePath.find_last_of('.') : std::string::npos;
 	auto deli = filePath.find_last_of(PATH_DELIMITER);
 
 	dotpos = (dotpos <= deli) ? std::string::npos : dotpos;
 	return filePath.substr(deli + 1, dotpos - deli - 1);
+#endif
 }
 
 static std::string JoinPath(const std::vector<std::string> &paths) {
 	std::string result;
 	for (auto &it : paths)
+#ifdef WINDOWS
+		result = (std::filesystem::path(result) / it).string();
+#else
 		result += PATH_DELIMITER + it;
+#endif
 	return CleanFilePath(result);
 }
 
