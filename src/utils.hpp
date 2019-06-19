@@ -61,7 +61,7 @@ static std::string CleanFilePath(const std::string &filePath, const std::string 
 		s = (std::filesystem::path(b) / p).lexically_normal().string();
 	else
 		s = p.lexically_normal().string();
-	std::replace(s.begin(), s.end(), '\\', '/');
+	//std::replace(s.begin(), s.end(), '\\', '/');
 	return s;
 #else
 
@@ -96,7 +96,7 @@ static std::string GetFilePath(const std::string &filePath) {
 #ifdef WINDOWS
 	auto p = std::filesystem::path(filePath);
 	std::string s = (p.root_path() / p.relative_path()).string();
-	std::replace(s.begin(), s.end(), '\\', '/');
+	//std::replace(s.begin(), s.end(), '\\', '/');
 	return s;
 #else
 	auto npos = filePath.find_last_of(PATH_DELIMITER);

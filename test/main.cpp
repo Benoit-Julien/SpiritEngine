@@ -223,10 +223,6 @@ static void DrawingInfo(std::shared_ptr<MyGlWindow> window, DrawInformation &) {
 int main() {
 	auto window = std::make_shared<MyGlWindow>(width, height);
 
-	Scene::LoadShaderFile(SHADERS_DIR + "shaders.json");
-	Scene::LoadTextureFile(TEXTURES_DIR + "textures.json");
-	Scene::LoadMaterialFile(MATERIALS_DIR + "materials.json");
-	Scene::LoadMaterialFile(MATERIALS_DIR + "simple.json");
 	{
 		auto mountain = Scene::CreateMesh("mountain");
 		mountain->LoadMesh(MODELS_DIR + "mountain/mount.blend1.obj");
