@@ -11,6 +11,9 @@
 #include "Viewer.h"
 #include "Scene.hpp"
 
+#undef near
+#undef far
+
 #define genericCallback(functionName)\
         [](GLFWwindow* window, auto... args) {\
             auto pointer = static_cast<MyGlWindow*>(glfwGetWindowUserPointer(window));\

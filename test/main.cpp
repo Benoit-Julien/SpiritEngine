@@ -93,7 +93,7 @@ static void DirectionalLightInfo() {
 	}
 }
 
-static void SpotLightInfo() {
+static void SpotLightInfo(std::shared_ptr<Mesh> mountain) {
 	static std::vector<std::pair<std::shared_ptr<SpotLight>, glm::vec3>> spots;
 	static float minIntensity = 0;
 
@@ -126,7 +126,8 @@ static void SpotLightInfo() {
 	}
 
 	if (ImGui::Button("Create")) {
-		spots.emplace_back(Scene::CreateLight<SpotLight>(), glm::vec3(0, 0, 0));
+		auto l = Scene::CreateLight<SpotLight>();
+		spots.emplace_back(l, glm::vec3(0, 0, 0));
 	}
 
 	for (auto light : toDelete) {
@@ -160,14 +161,18 @@ static void PointLightInfo(std::shared_ptr<Mesh> mountain) {
 				auto mesh = std::dynamic_pointer_cast<TriangleObject>(mountain->Children.front());
 
 				auto vertIndex = rd() % mesh->vertices.size();
+				auto m = mountain->GetWorldModelMatrix();
+				auto n = glm::mat3(glm::transpose(glm::inverse(m)));
 
-				newLight->SetPosition(mesh->vertices[vertIndex] + mesh->normals[vertIndex]);
+				auto normal = n * mesh->normals[vertIndex];
+				auto pos = m * glm::vec4(mesh->vertices[vertIndex], 1);
+
+				newLight->SetPosition(glm::vec3(pos) + normal);
 
 				auto color = glm::vec3(rd() % 255, rd() % 255, rd() % 255);
 				newLight->Diffuse = color;
 				newLight->Ambient = color * 0.01f;
 				newLight->Intensity = 0.01f;
-				newLight->SetParent(mountain);
 				newLight->UpdateLightVolume();
 			}
 		}
@@ -182,7 +187,7 @@ static void LightingInfo(std::shared_ptr<Mesh> mountain, DrawInformation &) {
 		if (ImGui::CollapsingHeader("Point")) PointLightInfo(mountain);
 
 		ImGui::Spacing();
-		if (ImGui::CollapsingHeader("Spot")) SpotLightInfo();
+		if (ImGui::CollapsingHeader("Spot")) SpotLightInfo(mountain);
 	}
 	ImGui::End();
 }
@@ -226,12 +231,6 @@ int main() {
 		auto mountain = Scene::CreateMesh("mountain");
 		mountain->LoadMesh(MODELS_DIR + "mountain/mount.blend1.obj");
 		mountain->Scale(glm::vec3(40, 20, 40));
-		window->RegisterPhysicalUpdateFunction([mountain]() {
-			static glm::vec3 rot;
-
-			rot.y += 0.0001f;
-			mountain->SetEulerAngles(rot);
-		});
 
 		/*auto sponza = Scene::CreateMesh("sponza");
 		sponza->LoadMesh(MODELS_DIR + "Sponza/sponza.obj");

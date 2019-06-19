@@ -10,6 +10,9 @@
 #include "Singleton.hpp"
 #include "Shader/ShaderProgram.hpp"
 
+#undef near
+#undef far
+
 class PostProcessing : public Singleton<PostProcessing> {
 	friend Singleton<PostProcessing>;
 
